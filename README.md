@@ -30,7 +30,7 @@ quantdesk/
 ├── backtest.py            # Phase 2 seed: SMA-crossover backtester vs buy-and-hold
 ├── dashboard.html         # sample output from recommender.py
 │
-├── sources/               # (planned) data adapters — RSS, Reddit, YouTube, Kite
+├── sources/               # data adapters — prices.py (yfinance), news.py (RSS + VADER sentiment)
 ├── strategies/            # (planned) strategy definitions for backtesting
 ├── engine/                # (planned) paper-trading + execution loop
 └── data/                  # (planned) cached prices, news, sentiment scores
