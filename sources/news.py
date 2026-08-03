@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import re
 from typing import Dict, List
 
 import feedparser
@@ -35,7 +36,7 @@ def match_headlines(headlines: List[Dict[str, str]], keywords: List[str]) -> Lis
     matched = []
     for headline in headlines:
         text = f"{headline.get('title', '')} {headline.get('summary', '')}".lower()
-        if any(kw in text for kw in lowered_keywords):
+        if any(re.search(rf"\b{re.escape(kw)}\b", text) for kw in lowered_keywords):
             matched.append(headline)
     return matched
 

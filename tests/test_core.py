@@ -14,13 +14,13 @@ def _rising_closes(n=60, start=100.0, step=0.5):
 
 
 def test_compute_momentum_positive_for_uptrend():
-    momentum = recommender._compute_momentum(_rising_closes())
-    assert momentum > 0
+    momentum = recommender._compute_momentum(_rising_closes(), "TEST")
+    assert momentum == pytest.approx(0.07231912725528986, abs=1e-9)
 
 
 def test_compute_momentum_raises_on_insufficient_history():
     with pytest.raises(ValueError):
-        recommender._compute_momentum([100.0] * 10)
+        recommender._compute_momentum([100.0] * 10, "TEST")
 
 
 def test_build_rankings_are_sorted_and_sized(monkeypatch):

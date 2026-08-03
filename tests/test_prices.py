@@ -67,3 +67,10 @@ def test_fetch_price_history_raises_on_missing_close_column(monkeypatch):
         prices.fetch_price_history("TEST")
 
     assert "Close" in str(exc_info.value)
+
+
+def test_fetch_price_history_raises_on_nan_close(monkeypatch):
+    monkeypatch.setattr(prices.yf, "download", lambda *a, **k: _FakeFrame([100.0, float("nan"), 99.0]))
+
+    with pytest.raises(RuntimeError):
+        prices.fetch_price_history("TEST")

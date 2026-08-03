@@ -22,4 +22,7 @@ def fetch_price_history(yf_symbol: str, period: str = "6mo") -> List[float]:
         # Some yfinance versions return a single-column DataFrame here
         # instead of a Series even for one symbol — flatten it.
         closes = closes.iloc[:, 0]
-    return [float(value) for value in closes.tolist()]
+    values = [float(value) for value in closes.tolist()]
+    if any(v != v for v in values):  # NaN != NaN is the classic NaN check
+        raise RuntimeError(f"Price data for {yf_symbol!r} contains NaN closes")
+    return values

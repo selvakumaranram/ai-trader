@@ -61,6 +61,14 @@ def test_match_headlines_filters_by_keyword():
     assert matched == [headlines[0]]
 
 
+def test_match_headlines_does_not_match_substring_inside_word():
+    headlines = [{"title": "Heavy rain disrupts shipping again", "summary": ""}]
+
+    matched = news.match_headlines(headlines, ["ai"])
+
+    assert matched == []
+
+
 def test_score_sentiment_returns_zero_for_no_headlines():
     assert news.score_sentiment([]) == 0.0
 

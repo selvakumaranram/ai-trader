@@ -37,9 +37,9 @@ STYLE_WEIGHTS = {
 }
 
 
-def _compute_momentum(closes: List[float]) -> float:
+def _compute_momentum(closes: List[float], symbol: str) -> float:
     if len(closes) < 51:
-        raise ValueError(f"Need at least 51 closes to compute momentum, got {len(closes)}")
+        raise ValueError(f"Need at least 51 closes to compute momentum for {symbol!r}, got {len(closes)}")
     return_10d = (closes[-1] - closes[-11]) / closes[-11]
     sma_50 = sum(closes[-50:]) / 50
     trend = (closes[-1] / sma_50) - 1
@@ -53,7 +53,7 @@ def _score_asset(
     closes: List[float],
     matched_headlines: List[Dict[str, str]],
 ) -> Dict[str, object]:
-    momentum = _compute_momentum(closes)
+    momentum = _compute_momentum(closes, asset["symbol"])
     sentiment = news_source.score_sentiment(matched_headlines)
     style_mix = STYLE_WEIGHTS[style]
     score = round(momentum * style_mix["momentum"] + sentiment * style_mix["sentiment"], 3)
