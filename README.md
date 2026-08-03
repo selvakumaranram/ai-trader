@@ -61,13 +61,16 @@ RANK ASSET     TYPE         SCORE   SUGGEST   ACTION
 Suggested deployed: Rs 15,000  |  Cash buffer: Rs 10,000
 ```
 
+> Scores now come from live price and news data, so exact numbers will
+> differ every run — the table above is illustrative, not a fixed sample.
+
 ### Config (top of `recommender.py`)
 | Setting | Meaning |
 |---|---|
-| `UNIVERSE` | assets to rank (symbol, type, keywords) |
+| `UNIVERSE` | assets to rank (symbol, yf_symbol, type, keywords) |
 | `RSS_FEEDS` | free news feeds to pull |
-| `WEIGHTS` | momentum vs sentiment mix |
-| `STYLE` | `intraday` / `short_term` / `swing` |
+| `STYLE` | `intraday` / `short_term` / `swing` — also sets the momentum vs sentiment mix (`STYLE_WEIGHTS`) |
+| `SCORE_THRESHOLD` | minimum combined score for "Research LONG" (default 0.15) |
 | `CAPITAL` | rupees to deploy (e.g. 25000) |
 | `MAX_DEPLOY_PCT` | max % of capital deployed (default 60%) |
 | `MAX_ALLOC_PER_IDEA` | max % in one name (default 20%) |
@@ -91,7 +94,7 @@ Grounded in the accompanying research report. Ordered so nothing risky ships ear
 
 - **Language:** Python 3.10+
 - **Data:** yfinance / Kite Connect (prices), RSS + Reddit API + YouTube Data API (news & sentiment)
-- **Sentiment:** built-in lexicon → VADER → FinBERT / LLM (upgrade path)
+- **Sentiment:** VADER (lexicon-based, current) → FinBERT / LLM (future upgrade path)
 - **Backtesting:** VectorBT / PyBroker / QuantConnect LEAN; Freqtrade for crypto
 - **Execution:** OpenAlgo + pykiteconnect (Zerodha)
 - **Dashboard:** standalone HTML now → FastAPI + Next.js later
@@ -118,19 +121,16 @@ Grounded in the accompanying research report. Ordered so nothing risky ships ear
 ```bash
 git clone <your-repo-url> quantdesk && cd quantdesk
 
-# Phase 1 runs with ZERO installs (standard library only):
-python recommender.py            # prints watchlist + writes dashboard.html
+pip install -r requirements.txt   # yfinance, feedparser, vaderSentiment
 
-# Upgrade to real data + better sentiment:
-pip install yfinance vaderSentiment feedparser
-python recommender.py
-
-# Phase 2 seed — backtesting:
-pip install pandas numpy matplotlib
+python recommender.py             # prints watchlist + writes dashboard.html
 python backtest.py RELIANCE.NS 20 50
 ```
 
 Then edit `CAPITAL` and `UNIVERSE` at the top of `recommender.py` to match yours.
+Both scripts fetch live prices and news over the network on every run — there
+is no offline or cached mode. A fetch failure aborts the run with an error
+naming the symbol or feed that failed.
 
 ---
 
