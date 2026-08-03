@@ -902,14 +902,10 @@ Replace with:
 
 - [ ] **Step 4: Add a note under the Example section**
 
-Find the line right after the example table's closing code fence:
-```markdown
-Suggested deployed: Rs 15,000  |  Cash buffer: Rs 10,000
-```
-\`\`\`
-```
+In README.md, the Example section ends with a fenced code block whose last
+line is `Suggested deployed: Rs 15,000  |  Cash buffer: Rs 10,000`.
 
-Immediately after that closing \`\`\` (and before the `### Config` heading), add:
+Immediately after that code block's closing fence (and before the `### Config` heading), add:
 
 ```markdown
 > Scores now come from live price and news data, so exact numbers will
