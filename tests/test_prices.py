@@ -26,6 +26,15 @@ class _FakeFrame:
         return self._close
 
 
+class _FakeFrameNoClose:
+    """Frame that raises KeyError when 'Close' column is accessed (schema drift)."""
+    def __init__(self):
+        self.empty = False
+
+    def __getitem__(self, key):
+        raise KeyError(key)
+
+
 def test_fetch_price_history_returns_close_values(monkeypatch):
     monkeypatch.setattr(prices.yf, "download", lambda *a, **k: _FakeFrame([100.0, 101.5, 99.25]))
 
@@ -49,3 +58,12 @@ def test_fetch_price_history_raises_on_download_exception(monkeypatch):
 
     with pytest.raises(RuntimeError):
         prices.fetch_price_history("TEST")
+
+
+def test_fetch_price_history_raises_on_missing_close_column(monkeypatch):
+    monkeypatch.setattr(prices.yf, "download", lambda *a, **k: _FakeFrameNoClose())
+
+    with pytest.raises(RuntimeError) as exc_info:
+        prices.fetch_price_history("TEST")
+
+    assert "Close" in str(exc_info.value)
