@@ -3,16 +3,38 @@ import sys
 
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-import recommender
+import pytest
+
 import backtest
+import recommender
 
 
 def _rising_closes(n=60, start=100.0, step=0.5):
     return [start + i * step for i in range(n)]
 
 
-def test_rankings_are_sorted_and_sized():
+def test_compute_momentum_positive_for_uptrend():
+    momentum = recommender._compute_momentum(_rising_closes())
+    assert momentum > 0
+
+
+def test_compute_momentum_raises_on_insufficient_history():
+    with pytest.raises(ValueError):
+        recommender._compute_momentum([100.0] * 10)
+
+
+def test_build_rankings_are_sorted_and_sized(monkeypatch):
+    fake_headlines = [{"title": "great ai rally", "summary": "chip demand strong"}]
+
+    monkeypatch.setattr(
+        recommender.prices_source,
+        "fetch_price_history",
+        lambda yf_symbol, period="6mo": _rising_closes(),
+    )
+    monkeypatch.setattr(recommender.news_source, "fetch_headlines", lambda feeds: fake_headlines)
+
     rows = recommender.build_rankings()
+
     assert rows
     assert rows[0]["score"] >= rows[-1]["score"]
     assert all("suggested" in row for row in rows)

@@ -1,19 +1,20 @@
 from __future__ import annotations
 
-import math
 import os
-import textwrap
 from typing import Dict, List
 
+from sources import news as news_source
+from sources import prices as prices_source
+
 UNIVERSE = [
-    {"symbol": "BTC", "type": "crypto", "keywords": ["bitcoin", "etf", "halving", "institutional"]},
-    {"symbol": "ETH", "type": "crypto", "keywords": ["ethereum", "layer2", "staking", "smart contract"]},
-    {"symbol": "NVDA", "type": "equity_us", "keywords": ["ai", "chip", "data center", "semiconductor"]},
-    {"symbol": "MSFT", "type": "equity_us", "keywords": ["cloud", "enterprise", "ai", "software"]},
-    {"symbol": "RELIANCE", "type": "equity_in", "keywords": ["retail", "energy", "telecom", "consumer"]},
-    {"symbol": "INFY", "type": "equity_in", "keywords": ["it", "software", "outsourcing", "digital"]},
-    {"symbol": "TCS", "type": "equity_in", "keywords": ["it", "services", "cloud", "enterprise"]},
-    {"symbol": "HDFC", "type": "equity_in", "keywords": ["bank", "finance", "credit", "lending"]},
+    {"symbol": "BTC", "yf_symbol": "BTC-USD", "type": "crypto", "keywords": ["bitcoin", "etf", "halving", "institutional"]},
+    {"symbol": "ETH", "yf_symbol": "ETH-USD", "type": "crypto", "keywords": ["ethereum", "layer2", "staking", "smart contract"]},
+    {"symbol": "NVDA", "yf_symbol": "NVDA", "type": "equity_us", "keywords": ["ai", "chip", "data center", "semiconductor"]},
+    {"symbol": "MSFT", "yf_symbol": "MSFT", "type": "equity_us", "keywords": ["cloud", "enterprise", "ai", "software"]},
+    {"symbol": "RELIANCE", "yf_symbol": "RELIANCE.NS", "type": "equity_in", "keywords": ["retail", "energy", "telecom", "consumer"]},
+    {"symbol": "INFY", "yf_symbol": "INFY.NS", "type": "equity_in", "keywords": ["it", "software", "outsourcing", "digital"]},
+    {"symbol": "TCS", "yf_symbol": "TCS.NS", "type": "equity_in", "keywords": ["it", "services", "cloud", "enterprise"]},
+    {"symbol": "HDFC", "yf_symbol": "HDFCBANK.NS", "type": "equity_in", "keywords": ["bank", "finance", "credit", "lending"]},
 ]
 
 RSS_FEEDS = [
@@ -22,16 +23,12 @@ RSS_FEEDS = [
     "https://www.moneycontrol.com/rss/marketnews.xml",
 ]
 
-WEIGHTS = {
-    "momentum": 0.65,
-    "sentiment": 0.35,
-}
-
 STYLE = "short_term"
 CAPITAL = 25000
 MAX_DEPLOY_PCT = 0.60
 MAX_ALLOC_PER_IDEA = 0.20
 MIN_TICKET = 500
+SCORE_THRESHOLD = 0.15
 
 STYLE_WEIGHTS = {
     "intraday": {"momentum": 0.8, "sentiment": 0.2},
@@ -40,39 +37,28 @@ STYLE_WEIGHTS = {
 }
 
 
-def _stable_score(text: str) -> float:
-    total = sum(ord(ch) for ch in text.lower())
-    return (total % 97) / 96.0
+def _compute_momentum(closes: List[float]) -> float:
+    if len(closes) < 51:
+        raise ValueError(f"Need at least 51 closes to compute momentum, got {len(closes)}")
+    return_10d = (closes[-1] - closes[-11]) / closes[-11]
+    sma_50 = sum(closes[-50:]) / 50
+    trend = (closes[-1] / sma_50) - 1
+    momentum = 0.5 * return_10d + 0.5 * trend
+    return max(-1.0, min(1.0, momentum))
 
 
-def _estimate_momentum(asset: Dict[str, object], style: str) -> float:
-    symbol = str(asset["symbol"]).lower()
+def _score_asset(
+    asset: Dict[str, object],
+    style: str,
+    closes: List[float],
+    matched_headlines: List[Dict[str, str]],
+) -> Dict[str, object]:
+    momentum = _compute_momentum(closes)
+    sentiment = news_source.score_sentiment(matched_headlines)
     style_mix = STYLE_WEIGHTS[style]
-    base = 0.45 + _stable_score(symbol) * 0.35
-    keyword_bonus = min(0.15, 0.02 * len(asset["keywords"]))
-    style_bonus = style_mix["momentum"] * 0.1
-    return min(0.99, max(0.05, base + keyword_bonus + style_bonus))
+    score = round(momentum * style_mix["momentum"] + sentiment * style_mix["sentiment"], 3)
 
-
-def _estimate_sentiment(asset: Dict[str, object]) -> float:
-    keywords = [word.lower() for word in asset["keywords"]]
-    combined = " ".join(keywords)
-    score = 0.5 + _stable_score(combined) * 0.25
-    if "ai" in combined:
-        score += 0.05
-    if "bitcoin" in combined or "crypto" in combined:
-        score += 0.03
-    return min(0.99, max(0.05, score))
-
-
-def _score_asset(asset: Dict[str, object], style: str) -> Dict[str, object]:
-    momentum = _estimate_momentum(asset, style)
-    sentiment = _estimate_sentiment(asset)
-    score = round((momentum * WEIGHTS["momentum"] + sentiment * WEIGHTS["sentiment"]), 3)
-    if style in STYLE_WEIGHTS:
-        score = round((momentum * STYLE_WEIGHTS[style]["momentum"] + sentiment * STYLE_WEIGHTS[style]["sentiment"]), 3)
-
-    action = "Research LONG" if score >= 0.55 else "Watchlist"
+    action = "Research LONG" if score >= SCORE_THRESHOLD else "Watchlist"
     return {
         "symbol": asset["symbol"],
         "type": asset["type"],
@@ -105,7 +91,12 @@ def _position_sizing(scores: List[Dict[str, object]]) -> List[Dict[str, object]]
 
 
 def build_rankings() -> List[Dict[str, object]]:
-    scored = [_score_asset(asset, STYLE) for asset in UNIVERSE]
+    headlines = news_source.fetch_headlines(RSS_FEEDS)
+    scored = []
+    for asset in UNIVERSE:
+        closes = prices_source.fetch_price_history(asset["yf_symbol"])
+        matched = news_source.match_headlines(headlines, asset["keywords"])
+        scored.append(_score_asset(asset, STYLE, closes, matched))
     ranked = sorted(scored, key=lambda item: item["score"], reverse=True)
     return _position_sizing(ranked)
 
