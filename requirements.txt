@@ -1,0 +1,7 @@
+# Optional dependencies for later phases
+# pandas>=2.0
+# numpy>=1.26
+# matplotlib>=3.8
+# yfinance>=0.2
+# vaderSentiment>=3.7
+# feedparser>=6.0
