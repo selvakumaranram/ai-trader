@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from typing import Dict, List
 
 from sources import news as news_source
@@ -67,6 +68,12 @@ STYLE_WEIGHTS = {
     "short_term": {"momentum": 0.7, "sentiment": 0.3},
     "swing": {"momentum": 0.55, "sentiment": 0.45},
 }
+
+_SYMBOL_SUFFIX_RE = re.compile(r"\.(NS|BO)$|-USD$", re.IGNORECASE)
+
+
+def derive_fallback_keyword(symbol: str) -> str:
+    return _SYMBOL_SUFFIX_RE.sub("", symbol).lower()
 
 
 def _compute_momentum(closes: List[float], symbol: str) -> float:

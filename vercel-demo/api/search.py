@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import os
-import re
 import sys
 import traceback
 from http.server import BaseHTTPRequestHandler
@@ -17,8 +16,6 @@ from sources import prices as prices_source
 # Demo-only override: see api/dashboard.py for why.
 recommender.RSS_FEEDS = ["https://finance.yahoo.com/news/rssindex"]
 
-_SUFFIX_RE = re.compile(r"\.(NS|BO)$|-USD$", re.IGNORECASE)
-
 
 def search_symbol(raw_symbol: str) -> dict:
     symbol = raw_symbol.strip().upper()
@@ -31,7 +28,7 @@ def search_symbol(raw_symbol: str) -> dict:
     # "AAPL," so search sentiment will often come back neutral for tickers
     # whose symbol doesn't match how the company is written in prose.
     # Momentum-based analysis is unaffected and works for any symbol.
-    keyword = _SUFFIX_RE.sub("", symbol).lower()
+    keyword = recommender.derive_fallback_keyword(symbol)
     asset = {"symbol": symbol, "type": None, "keywords": [keyword]}
 
     closes = prices_source.fetch_price_history(symbol)
