@@ -720,9 +720,9 @@ import { getDeviceId } from "./deviceId.js";
 
 export async function apiFetch(path, options = {}) {
   const headers = {
-    "X-Device-Id": getDeviceId(),
     ...(options.body ? { "Content-Type": "application/json" } : {}),
     ...options.headers,
+    "X-Device-Id": getDeviceId(),
   };
 
   const res = await fetch(path, { ...options, headers });
