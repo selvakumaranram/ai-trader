@@ -1,9 +1,11 @@
 import { useEffect, useState } from "react";
+import CapitalInput from "./components/CapitalInput.jsx";
 
 export default function App() {
   const [dashboard, setDashboard] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [capital, setCapital] = useState(25000);
 
   useEffect(() => {
     fetch("/api/dashboard")
@@ -24,6 +26,7 @@ export default function App() {
           Research &amp; recommendation dashboard — live prices, live sentiment.
         </p>
       </header>
+      <CapitalInput capital={capital} onChange={setCapital} />
       {loading && <p>Loading live market data…</p>}
       {error && <p className="error-text">Error: {error}</p>}
       {dashboard && (
