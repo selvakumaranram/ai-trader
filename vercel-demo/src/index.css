@@ -134,6 +134,15 @@ body {
   border-radius: 999px;
 }
 
+.asset-style-label {
+  font-size: 0.75rem;
+  color: var(--accent);
+  background: rgba(142, 207, 255, 0.15);
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
 .asset-card-stats {
   display: flex;
   align-items: center;

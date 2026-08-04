@@ -1,3 +1,13 @@
+function MoverPct({ pct }) {
+  const isPositive = pct >= 0;
+  return (
+    <span className={`mover-pct ${isPositive ? "positive" : "negative"}`}>
+      {isPositive ? "+" : ""}
+      {pct.toFixed(2)}%
+    </span>
+  );
+}
+
 export default function TopMovers({ assets }) {
   const gainers = [...assets].sort((a, b) => b.day_change_pct - a.day_change_pct).slice(0, 10);
   const losers = [...assets].sort((a, b) => a.day_change_pct - b.day_change_pct).slice(0, 10);
@@ -9,7 +19,7 @@ export default function TopMovers({ assets }) {
         {gainers.map((a) => (
           <div key={a.symbol} className="mover-row">
             <span className="asset-symbol">{a.symbol}</span>
-            <span className="mover-pct positive">+{a.day_change_pct.toFixed(2)}%</span>
+            <MoverPct pct={a.day_change_pct} />
           </div>
         ))}
       </div>
@@ -18,7 +28,7 @@ export default function TopMovers({ assets }) {
         {losers.map((a) => (
           <div key={a.symbol} className="mover-row">
             <span className="asset-symbol">{a.symbol}</span>
-            <span className="mover-pct negative">{a.day_change_pct.toFixed(2)}%</span>
+            <MoverPct pct={a.day_change_pct} />
           </div>
         ))}
       </div>

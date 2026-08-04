@@ -7,46 +7,46 @@ from sources import news as news_source
 from sources import prices as prices_source
 
 UNIVERSE = [
-    {"symbol": "BTC", "yf_symbol": "BTC-USD", "type": "crypto", "keywords": ["bitcoin", "etf", "halving", "institutional"]},
-    {"symbol": "ETH", "yf_symbol": "ETH-USD", "type": "crypto", "keywords": ["ethereum", "layer2", "staking", "smart contract"]},
-    {"symbol": "SOL", "yf_symbol": "SOL-USD", "type": "crypto", "keywords": ["solana", "defi", "layer1", "validator"]},
+    {"symbol": "BTC", "yf_symbol": "BTC-USD", "type": "crypto", "keywords": ["bitcoin", "bitcoin etf", "halving", "institutional"]},
+    {"symbol": "ETH", "yf_symbol": "ETH-USD", "type": "crypto", "keywords": ["ethereum", "layer 2", "staking", "smart contracts"]},
+    {"symbol": "SOL", "yf_symbol": "SOL-USD", "type": "crypto", "keywords": ["solana", "defi", "layer 1", "validators"]},
     {"symbol": "BNB", "yf_symbol": "BNB-USD", "type": "crypto", "keywords": ["binance", "bnb chain", "exchange token"]},
     {"symbol": "XRP", "yf_symbol": "XRP-USD", "type": "crypto", "keywords": ["ripple", "xrp", "cross-border payments"]},
-    {"symbol": "NVDA", "yf_symbol": "NVDA", "type": "equity_us", "keywords": ["ai", "chip", "data center", "semiconductor"]},
+    {"symbol": "NVDA", "yf_symbol": "NVDA", "type": "equity_us", "keywords": ["ai", "chip", "chips", "data center", "semiconductor"]},
     {"symbol": "MSFT", "yf_symbol": "MSFT", "type": "equity_us", "keywords": ["cloud", "enterprise", "ai", "software"]},
-    {"symbol": "AAPL", "yf_symbol": "AAPL", "type": "equity_us", "keywords": ["iphone", "apple", "consumer electronics", "services"]},
-    {"symbol": "GOOGL", "yf_symbol": "GOOGL", "type": "equity_us", "keywords": ["google", "search", "cloud", "advertising"]},
+    {"symbol": "AAPL", "yf_symbol": "AAPL", "type": "equity_us", "keywords": ["iphone", "apple", "consumer electronics", "macbook"]},
+    {"symbol": "GOOGL", "yf_symbol": "GOOGL", "type": "equity_us", "keywords": ["google", "google search", "cloud", "advertising"]},
     {"symbol": "TSLA", "yf_symbol": "TSLA", "type": "equity_us", "keywords": ["tesla", "electric vehicle", "ev", "autonomous driving"]},
     {"symbol": "AMZN", "yf_symbol": "AMZN", "type": "equity_us", "keywords": ["amazon", "ecommerce", "cloud", "logistics"]},
     {"symbol": "META", "yf_symbol": "META", "type": "equity_us", "keywords": ["facebook", "instagram", "social media", "advertising"]},
-    {"symbol": "AMD", "yf_symbol": "AMD", "type": "equity_us", "keywords": ["chip", "semiconductor", "gpu", "processor"]},
-    {"symbol": "NFLX", "yf_symbol": "NFLX", "type": "equity_us", "keywords": ["netflix", "streaming", "subscriber", "content"]},
-    {"symbol": "JPM", "yf_symbol": "JPM", "type": "equity_us", "keywords": ["bank", "finance", "lending", "wall street"]},
-    {"symbol": "V", "yf_symbol": "V", "type": "equity_us", "keywords": ["visa", "payments", "credit card", "transactions"]},
+    {"symbol": "AMD", "yf_symbol": "AMD", "type": "equity_us", "keywords": ["chip", "chips", "semiconductor", "gpu", "processor"]},
+    {"symbol": "NFLX", "yf_symbol": "NFLX", "type": "equity_us", "keywords": ["netflix", "streaming", "subscribers", "original series"]},
+    {"symbol": "JPM", "yf_symbol": "JPM", "type": "equity_us", "keywords": ["jpmorgan", "bank", "finance", "lending", "wall street"]},
+    {"symbol": "V", "yf_symbol": "V", "type": "equity_us", "keywords": ["visa inc", "payments", "credit card", "payment network"]},
     {"symbol": "DIS", "yf_symbol": "DIS", "type": "equity_us", "keywords": ["disney", "streaming", "entertainment", "theme park"]},
     {"symbol": "RELIANCE", "yf_symbol": "RELIANCE.NS", "type": "equity_in", "keywords": ["retail", "energy", "telecom", "consumer"]},
-    {"symbol": "INFY", "yf_symbol": "INFY.NS", "type": "equity_in", "keywords": ["software", "outsourcing", "digital", "it services"]},
-    {"symbol": "TCS", "yf_symbol": "TCS.NS", "type": "equity_in", "keywords": ["services", "cloud", "enterprise", "it services"]},
-    {"symbol": "HDFC", "yf_symbol": "HDFCBANK.NS", "type": "equity_in", "keywords": ["bank", "finance", "credit", "lending"]},
-    {"symbol": "ICICIBANK", "yf_symbol": "ICICIBANK.NS", "type": "equity_in", "keywords": ["bank", "finance", "credit", "lending"]},
-    {"symbol": "WIPRO", "yf_symbol": "WIPRO.NS", "type": "equity_in", "keywords": ["software", "outsourcing", "digital", "it services"]},
+    {"symbol": "INFY", "yf_symbol": "INFY.NS", "type": "equity_in", "keywords": ["infosys", "software", "outsourcing", "digital"]},
+    {"symbol": "TCS", "yf_symbol": "TCS.NS", "type": "equity_in", "keywords": ["tata consultancy", "tcs", "cloud", "enterprise"]},
+    {"symbol": "HDFC", "yf_symbol": "HDFCBANK.NS", "type": "equity_in", "keywords": ["hdfc", "bank", "finance", "credit", "lending"]},
+    {"symbol": "ICICIBANK", "yf_symbol": "ICICIBANK.NS", "type": "equity_in", "keywords": ["icici", "bank", "finance", "credit", "lending"]},
+    {"symbol": "WIPRO", "yf_symbol": "WIPRO.NS", "type": "equity_in", "keywords": ["wipro", "software", "outsourcing", "digital"]},
     {"symbol": "ITC", "yf_symbol": "ITC.NS", "type": "equity_in", "keywords": ["fmcg", "consumer goods", "cigarette", "hotel"]},
-    {"symbol": "SBIN", "yf_symbol": "SBIN.NS", "type": "equity_in", "keywords": ["bank", "psu", "finance", "lending"]},
-    {"symbol": "BHARTIARTL", "yf_symbol": "BHARTIARTL.NS", "type": "equity_in", "keywords": ["telecom", "airtel", "mobile", "broadband"]},
+    {"symbol": "SBIN", "yf_symbol": "SBIN.NS", "type": "equity_in", "keywords": ["sbi", "bank", "psu", "lending"]},
+    {"symbol": "BHARTIARTL", "yf_symbol": "BHARTIARTL.NS", "type": "equity_in", "keywords": ["telecom", "airtel", "bharti airtel", "broadband"]},
     {"symbol": "LT", "yf_symbol": "LT.NS", "type": "equity_in", "keywords": ["infrastructure", "construction", "engineering", "capital goods"]},
-    {"symbol": "KOTAKBANK", "yf_symbol": "KOTAKBANK.NS", "type": "equity_in", "keywords": ["bank", "finance", "credit", "lending"]},
-    {"symbol": "AXISBANK", "yf_symbol": "AXISBANK.NS", "type": "equity_in", "keywords": ["bank", "finance", "credit", "lending"]},
+    {"symbol": "KOTAKBANK", "yf_symbol": "KOTAKBANK.NS", "type": "equity_in", "keywords": ["kotak", "bank", "finance", "credit", "lending"]},
+    {"symbol": "AXISBANK", "yf_symbol": "AXISBANK.NS", "type": "equity_in", "keywords": ["axis bank", "bank", "finance", "credit", "lending"]},
     {"symbol": "MARUTI", "yf_symbol": "MARUTI.NS", "type": "equity_in", "keywords": ["automobile", "car", "suzuki", "vehicle"]},
     {"symbol": "SUNPHARMA", "yf_symbol": "SUNPHARMA.NS", "type": "equity_in", "keywords": ["pharma", "healthcare", "drug", "medicine"]},
     {"symbol": "TITAN", "yf_symbol": "TITAN.NS", "type": "equity_in", "keywords": ["jewellery", "watches", "retail", "consumer"]},
     {"symbol": "ASIANPAINT", "yf_symbol": "ASIANPAINT.NS", "type": "equity_in", "keywords": ["paint", "consumer goods", "coatings", "retail"]},
     {"symbol": "BAJFINANCE", "yf_symbol": "BAJFINANCE.NS", "type": "equity_in", "keywords": ["nbfc", "finance", "lending", "consumer credit"]},
-    {"symbol": "HCLTECH", "yf_symbol": "HCLTECH.NS", "type": "equity_in", "keywords": ["software", "outsourcing", "digital", "it services"]},
+    {"symbol": "HCLTECH", "yf_symbol": "HCLTECH.NS", "type": "equity_in", "keywords": ["hcltech", "hcl technologies", "software", "outsourcing"]},
     {"symbol": "ULTRACEMCO", "yf_symbol": "ULTRACEMCO.NS", "type": "equity_in", "keywords": ["cement", "infrastructure", "construction", "building materials"]},
     {"symbol": "NESTLEIND", "yf_symbol": "NESTLEIND.NS", "type": "equity_in", "keywords": ["fmcg", "food", "consumer goods", "nutrition"]},
     {"symbol": "ADANIENT", "yf_symbol": "ADANIENT.NS", "type": "equity_in", "keywords": ["infrastructure", "energy", "ports", "conglomerate"]},
-    {"symbol": "ONGC", "yf_symbol": "ONGC.NS", "type": "equity_in", "keywords": ["oil", "gas", "energy", "psu"]},
-    {"symbol": "NTPC", "yf_symbol": "NTPC.NS", "type": "equity_in", "keywords": ["power", "energy", "psu", "electricity"]},
+    {"symbol": "ONGC", "yf_symbol": "ONGC.NS", "type": "equity_in", "keywords": ["ongc", "oil", "gas", "energy", "psu"]},
+    {"symbol": "NTPC", "yf_symbol": "NTPC.NS", "type": "equity_in", "keywords": ["ntpc", "power", "energy", "psu", "electricity"]},
 ]
 
 RSS_FEEDS = [
@@ -105,6 +105,31 @@ def _score_asset(
         "sentiment": round(sentiment, 3),
         "score": score,
         "action": action,
+    }
+
+
+def build_asset_payload(asset: Dict[str, object], closes: List[float], headlines: List[Dict[str, str]]) -> Dict[str, object]:
+    matched = news_source.match_headlines(headlines, asset["keywords"])
+    day_change_pct = round((closes[-1] - closes[-2]) / closes[-2] * 100, 2)
+
+    scores = {}
+    momentum_value = None
+    sentiment_value = None
+    for style in STYLE_WEIGHTS:
+        scored = _score_asset(asset, style, closes, matched)
+        momentum_value = scored["momentum"]
+        sentiment_value = scored["sentiment"]
+        scores[style] = {"score": scored["score"], "action": scored["action"]}
+
+    return {
+        "symbol": asset["symbol"],
+        "type": asset["type"],
+        "momentum": momentum_value,
+        "momentum_detail": _momentum_detail(closes),
+        "sentiment": sentiment_value,
+        "day_change_pct": day_change_pct,
+        "matched_headlines": matched,
+        "scores": scores,
     }
 
 

@@ -1,4 +1,4 @@
-const STYLE_LABELS = {
+export const STYLE_LABELS = {
   intraday: "Day Trading",
   short_term: "Short-Term",
   swing: "Swing / Long-Term",

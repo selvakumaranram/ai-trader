@@ -17,7 +17,6 @@ from sources import prices as prices_source
 # Demo-only override: see api/dashboard.py for why.
 recommender.RSS_FEEDS = ["https://finance.yahoo.com/news/rssindex"]
 
-STYLES = ("intraday", "short_term", "swing")
 _SUFFIX_RE = re.compile(r"\.(NS|BO)$|-USD$", re.IGNORECASE)
 
 
@@ -44,29 +43,9 @@ def search_symbol(raw_symbol: str) -> dict:
         headlines = []
         warning = f"News sentiment unavailable this run: {exc}"
 
-    matched = news_source.match_headlines(headlines, asset["keywords"])
-    day_change_pct = round((closes[-1] - closes[-2]) / closes[-2] * 100, 2)
-
-    scores = {}
-    momentum_value = None
-    sentiment_value = None
-    for style in STYLES:
-        scored = recommender._score_asset(asset, style, closes, matched)
-        momentum_value = scored["momentum"]
-        sentiment_value = scored["sentiment"]
-        scores[style] = {"score": scored["score"], "action": scored["action"]}
-
-    return {
-        "symbol": symbol,
-        "type": None,
-        "momentum": momentum_value,
-        "momentum_detail": recommender._momentum_detail(closes),
-        "sentiment": sentiment_value,
-        "day_change_pct": day_change_pct,
-        "matched_headlines": matched,
-        "scores": scores,
-        "warning": warning,
-    }
+    payload = recommender.build_asset_payload(asset, closes, headlines)
+    payload["warning"] = warning
+    return payload
 
 
 class handler(BaseHTTPRequestHandler):

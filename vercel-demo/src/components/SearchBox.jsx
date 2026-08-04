@@ -45,7 +45,7 @@ export default function SearchBox() {
       {result && (
         <div className="search-results">
           {STYLES.map((style) => (
-            <AssetCard key={style} asset={result} style={style} suggested={undefined} />
+            <AssetCard key={style} asset={result} style={style} suggested={undefined} showStyleLabel />
           ))}
         </div>
       )}

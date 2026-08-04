@@ -1,5 +1,5 @@
 import { useState } from "react";
-import WhyPanel from "./WhyPanel.jsx";
+import WhyPanel, { STYLE_LABELS } from "./WhyPanel.jsx";
 
 const TYPE_LABELS = {
   crypto: "Crypto",
@@ -12,7 +12,7 @@ const ACTION_COLORS = {
   Watchlist: "var(--text-muted)",
 };
 
-export default function AssetCard({ asset, style, suggested }) {
+export default function AssetCard({ asset, style, suggested, showStyleLabel }) {
   const [expanded, setExpanded] = useState(false);
   const styleData = asset.scores[style];
 
@@ -22,6 +22,7 @@ export default function AssetCard({ asset, style, suggested }) {
         <div className="asset-card-main">
           <span className="asset-symbol">{asset.symbol}</span>
           {asset.type && <span className="asset-type">{TYPE_LABELS[asset.type] || asset.type}</span>}
+          {showStyleLabel && <span className="asset-style-label">{STYLE_LABELS[style]}</span>}
         </div>
         <div className="asset-card-stats">
           <span className="asset-score">{styleData.score.toFixed(3)}</span>

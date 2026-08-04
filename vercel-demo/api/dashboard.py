@@ -18,33 +18,6 @@ from sources import prices as prices_source
 # override previously used in the now-removed api/recommend.py.
 recommender.RSS_FEEDS = ["https://finance.yahoo.com/news/rssindex"]
 
-STYLES = ("intraday", "short_term", "swing")
-
-
-def _build_asset_result(asset, closes, headlines):
-    matched = news_source.match_headlines(headlines, asset["keywords"])
-    day_change_pct = round((closes[-1] - closes[-2]) / closes[-2] * 100, 2)
-
-    scores = {}
-    momentum_value = None
-    sentiment_value = None
-    for style in STYLES:
-        scored = recommender._score_asset(asset, style, closes, matched)
-        momentum_value = scored["momentum"]
-        sentiment_value = scored["sentiment"]
-        scores[style] = {"score": scored["score"], "action": scored["action"]}
-
-    return {
-        "symbol": asset["symbol"],
-        "type": asset["type"],
-        "momentum": momentum_value,
-        "momentum_detail": recommender._momentum_detail(closes),
-        "sentiment": sentiment_value,
-        "day_change_pct": day_change_pct,
-        "matched_headlines": matched,
-        "scores": scores,
-    }
-
 
 def _fetch_one(asset):
     closes = prices_source.fetch_price_history(asset["yf_symbol"])
@@ -67,7 +40,7 @@ def build_dashboard():
             asset = futures[future]
             try:
                 _, closes = future.result()
-                assets.append(_build_asset_result(asset, closes, headlines))
+                assets.append(recommender.build_asset_payload(asset, closes, headlines))
             except Exception as exc:
                 failed.append({"symbol": asset["symbol"], "error": str(exc)})
 
