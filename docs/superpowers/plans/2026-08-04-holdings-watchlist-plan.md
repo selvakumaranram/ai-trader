@@ -102,7 +102,11 @@ def compute_sell_signal(scores: Dict[str, Dict[str, object]]) -> Dict[str, str]:
 
 def compute_holding_period(buy_date: date, symbol: str) -> Dict[str, Optional[object]]:
     days_held = (date.today() - buy_date).days
-    ltcg_applicable = not symbol.upper().endswith("-USD")
+    # India's 365-day LTCG rule is specific to Indian equity (.NS/.BO). US
+    # stocks (unsuffixed, e.g. AAPL) and crypto (-USD) both fall outside it
+    # -- "not crypto" is not the same test as "is Indian equity" and would
+    # mislabel a US holding with a tax rule that doesn't apply to it.
+    ltcg_applicable = symbol.upper().endswith((".NS", ".BO"))
     if not ltcg_applicable:
         return {
             "days_held": days_held,
@@ -139,7 +143,7 @@ Expected: all three print `OK`.
 
 - [ ] **Step 6: Manual trace**
 
-Confirm `derive_fallback_keyword("RELIANCE.NS")` → `"reliance"`, `derive_fallback_keyword("BTC-USD")` → `"btc"` (same behavior as the old `_SUFFIX_RE` in `search.py`, just relocated). Confirm `api/search.py` has no remaining reference to `_SUFFIX_RE` or a bare `import re`. Trace `compute_sell_signal({"short_term": {"score": -0.05}, "swing": {"score": 0.1}})` → `{"action": "Short-term weakness", ...}` (first score negative, second not). Trace `compute_holding_period(date(2025, 1, 1), "RELIANCE.NS")` with "today" far enough past 2026-01-01 that `days_held >= 365` → `ltcg_eligible: True`. Trace `compute_holding_period(date(2026, 7, 1), "BTC-USD")` → `ltcg_applicable: False`, `ltcg_eligible: None`, `days_to_ltcg: None` (crypto suffix short-circuits before the 365-day check).
+Confirm `derive_fallback_keyword("RELIANCE.NS")` → `"reliance"`, `derive_fallback_keyword("BTC-USD")` → `"btc"` (same behavior as the old `_SUFFIX_RE` in `search.py`, just relocated). Confirm `api/search.py` has no remaining reference to `_SUFFIX_RE` or a bare `import re`. Trace `compute_sell_signal({"short_term": {"score": -0.05}, "swing": {"score": 0.1}})` → `{"action": "Short-term weakness", ...}` (first score negative, second not). Trace `compute_holding_period(date(2025, 1, 1), "RELIANCE.NS")` with "today" far enough past 2026-01-01 that `days_held >= 365` → `.NS` suffix → `ltcg_applicable: True`, `ltcg_eligible: True`. Trace `compute_holding_period(date(2026, 7, 1), "BTC-USD")` → `-USD` suffix, not `.NS`/`.BO` → `ltcg_applicable: False`, `ltcg_eligible: None`, `days_to_ltcg: None`. Trace `compute_holding_period(date(2025, 1, 1), "AAPL")` (unsuffixed US equity) → also not `.NS`/`.BO` → `ltcg_applicable: False`, `ltcg_eligible: None`, `days_to_ltcg: None` — confirms US equities correctly get the same "not applicable" treatment as crypto, not the Indian-equity LTCG framing.
 
 - [ ] **Step 7: Commit**
 
@@ -807,7 +811,7 @@ export default function HoldingCard({ holding, onDelete }) {
             {holding.ltcg_eligible ? "Long-term eligible" : `${holding.days_to_ltcg} days to long-term`}
           </span>
         ) : (
-          <span>N/A — crypto (flat tax)</span>
+          <span>N/A — India LTCG applies to .NS/.BO equity only</span>
         )}
         <button
           type="button"

@@ -89,7 +89,7 @@ All four are new Python files under `vercel-demo/api/`, following the existing `
   "failed": [{"id": 2, "symbol": "XYZ", "error": "..."}]
 }
 ```
-`current_price` is `closes[-1]` from the same fetch used for scoring. `ltcg_applicable` is `false` when the symbol looks like a crypto pair (`symbol.upper().endswith("-USD")`, matching the convention already used throughout `UNIVERSE`) — India taxes crypto at a flat 30% with no long-term/short-term distinction, so `ltcg_eligible`/`days_to_ltcg` are `null` in that case, not computed as if it were equity.
+`current_price` is `closes[-1]` from the same fetch used for scoring. `ltcg_applicable` is `true` only when the symbol looks like Indian equity (`symbol.upper().endswith((".NS", ".BO"))`, matching the convention already used throughout `UNIVERSE`) — India's 365-day LTCG rule is specific to Indian equity. Both crypto (`-USD`, flat 30% tax, no long-term/short-term distinction) and unsuffixed US equity (a different country's capital-gains rules entirely, e.g. `AAPL`) fall outside it, so `ltcg_eligible`/`days_to_ltcg` are `null` for both — a plain `not symbol.endswith("-USD")` check would incorrectly apply India's LTCG framing to a US stock holding, which this spec deliberately avoids.
 
 **`POST /api/holdings`** — body `{"symbol", "buy_price", "quantity", "buy_date"}` (date as `"YYYY-MM-DD"`). Validates: symbol non-empty; `buy_price > 0`; `quantity > 0`; `buy_date` is a valid date not in the future. **Also attempts a live price fetch before inserting** (`prices_source.fetch_price_history(symbol)`) — if that fails, reject with a clear error rather than silently saving an unfetchable symbol (matches the project's fail-loudly philosophy). On success: `201` with the inserted row (no enrichment — that happens on `GET`).
 
@@ -134,7 +134,7 @@ from datetime import date
 
 def compute_holding_period(buy_date: date, symbol: str) -> dict:
     days_held = (date.today() - buy_date).days
-    ltcg_applicable = not symbol.upper().endswith("-USD")
+    ltcg_applicable = symbol.upper().endswith((".NS", ".BO"))
     if not ltcg_applicable:
         return {"days_held": days_held, "ltcg_applicable": False, "ltcg_eligible": None, "days_to_ltcg": None}
     ltcg_eligible = days_held >= 365
