@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import CapitalInput from "./components/CapitalInput.jsx";
+import SearchBox from "./components/SearchBox.jsx";
 import StyleSection from "./components/StyleSection.jsx";
 import TopMovers from "./components/TopMovers.jsx";
 
@@ -36,6 +37,8 @@ export default function App() {
           Research &amp; recommendation dashboard — live prices, live sentiment.
         </p>
       </header>
+
+      <SearchBox />
 
       <CapitalInput capital={capital} onChange={setCapital} />
 
