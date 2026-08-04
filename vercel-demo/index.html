@@ -1,15 +1,12 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-<meta charset="utf-8" />
-<title>QuantDesk — Phase 1 Live Demo</title>
-</head>
-<body style="font-family: monospace; background:#07111f; color:#e7eefc; padding:2rem; max-width:720px; margin:0 auto;">
-<h1>QuantDesk — Phase 1 Live Demo</h1>
-<p>Quick experiment deployment: runs the real yfinance / RSS / VADER pipeline on Vercel's Linux runtime, sidestepping a local Windows DLL policy block. Not part of the reviewed repo — this is a throwaway demo, not a production deployment.</p>
-<ul>
-<li><a href="/api/recommend" style="color:#8ecfff;">/api/recommend</a> — full ranking table (fetches 8 tickers + RSS, may take a few seconds)</li>
-<li><a href="/api/backtest?symbol=RELIANCE.NS&short=20&long=50" style="color:#8ecfff;">/api/backtest?symbol=RELIANCE.NS&amp;short=20&amp;long=50</a> — SMA-crossover backtest vs buy-and-hold</li>
-</ul>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>QuantDesk Dashboard</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
 </html>

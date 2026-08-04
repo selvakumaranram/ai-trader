@@ -1,0 +1,37 @@
+:root {
+  --bg: #07111f;
+  --card: #10233c;
+  --card-border: #2f4b72;
+  --text: #e7eefc;
+  --text-muted: #89a6c9;
+  --accent: #8ecfff;
+  --positive: #4ade80;
+  --negative: #f87171;
+  --warning: #fbbf24;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+#root {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 2rem 1.25rem 4rem;
+}
+
+.error-text {
+  color: var(--negative);
+}
+
+.warning-text {
+  color: var(--warning);
+  font-size: 0.9rem;
+}
