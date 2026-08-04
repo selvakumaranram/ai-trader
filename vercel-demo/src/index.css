@@ -296,3 +296,89 @@ body {
   flex-direction: column;
   gap: 0.5rem;
 }
+
+.add-form {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin-bottom: 1rem;
+}
+
+.add-form input {
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  background: var(--card);
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.add-form button {
+  padding: 0.55rem 1.1rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: #07111f;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.add-form button:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.empty-state {
+  color: var(--text-muted);
+  font-style: italic;
+}
+
+.holdings-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.holding-qty {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.holding-pnl {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.holding-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0 1rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.delete-button {
+  margin-left: auto;
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+  border: 1px solid var(--negative);
+  background: transparent;
+  color: var(--negative);
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.holding-why {
+  padding: 0 1rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.why-sell-reason {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-style: italic;
+}
