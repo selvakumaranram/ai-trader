@@ -28,7 +28,7 @@ def compute_sell_signal(scores: Dict[str, Dict[str, object]]) -> Dict[str, str]:
 
 def compute_holding_period(buy_date: date, symbol: str) -> Dict[str, Optional[object]]:
     days_held = (date.today() - buy_date).days
-    ltcg_applicable = not symbol.upper().endswith("-USD")
+    ltcg_applicable = symbol.upper().endswith((".NS", ".BO"))
     if not ltcg_applicable:
         return {
             "days_held": days_held,
