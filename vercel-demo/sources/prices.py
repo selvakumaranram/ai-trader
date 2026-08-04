@@ -23,6 +23,14 @@ def fetch_price_history(yf_symbol: str, period: str = "6mo") -> List[float]:
         # instead of a Series even for one symbol — flatten it.
         closes = closes.iloc[:, 0]
     values = [float(value) for value in closes.tolist()]
-    if any(v != v for v in values):  # NaN != NaN is the classic NaN check
-        raise RuntimeError(f"Price data for {yf_symbol!r} contains NaN closes")
+    # Demo-only relaxation: the reviewed repo raises on any NaN close (see
+    # sources/prices.py at repo root) so bad data never silently reaches
+    # scoring math. Real yfinance data for some NSE tickers (e.g.
+    # RELIANCE.NS) contains scattered NaN rows from holiday-calendar
+    # misalignment even on successful fetches. For this live demo we drop
+    # those rows instead of aborting the whole ranking run, so the full
+    # pipeline is visible end to end.
+    values = [v for v in values if v == v]  # v == v is False only for NaN
+    if not values:
+        raise RuntimeError(f"Price data for {yf_symbol!r} is entirely NaN")
     return values
