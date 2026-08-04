@@ -1,11 +1,13 @@
 import { useEffect, useState } from "react";
 import CapitalInput from "./components/CapitalInput.jsx";
 import StyleSection from "./components/StyleSection.jsx";
+import TopMovers from "./components/TopMovers.jsx";
 
 const TABS = [
   { key: "intraday", label: "Day Trading" },
   { key: "short_term", label: "Short-Term" },
   { key: "swing", label: "Swing / Long-Term" },
+  { key: "movers", label: "Top Movers" },
 ];
 
 export default function App() {
@@ -61,7 +63,11 @@ export default function App() {
               </button>
             ))}
           </nav>
-          <StyleSection assets={dashboard.assets} style={activeTab} capital={capital} />
+          {activeTab === "movers" ? (
+            <TopMovers assets={dashboard.assets} />
+          ) : (
+            <StyleSection assets={dashboard.assets} style={activeTab} capital={capital} />
+          )}
         </>
       )}
     </div>
