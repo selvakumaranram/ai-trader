@@ -622,6 +622,8 @@ class handler(BaseHTTPRequestHandler):
             device_id = _device_id_from_headers(self.headers)
             length = int(self.headers.get("Content-Length", 0))
             body = json.loads(self.rfile.read(length) or b"{}")
+            if not isinstance(body, dict):
+                raise ValueError("Request body must be a JSON object")
             payload = add_to_watchlist(device_id, body)
             status = 201
         except ValueError as exc:
