@@ -54,8 +54,11 @@ def _fetch_csv_rows(session: requests.Session, url: str) -> List[Dict[str, str]]
         response.raise_for_status()
     except requests.RequestException as exc:
         raise RuntimeError(f"Failed to fetch {url!r}: {exc}") from exc
-    reader = csv.DictReader(io.StringIO(response.text))
-    return [{(k or "").strip(): (v or "").strip() for k, v in row.items()} for row in reader]
+    try:
+        reader = csv.DictReader(io.StringIO(response.text))
+        return [{(k or "").strip(): (v or "").strip() for k, v in row.items()} for row in reader]
+    except Exception as exc:
+        raise RuntimeError(f"Failed to parse CSV response from {url!r}: {exc}") from exc
 
 
 def fetch_nifty200_symbols() -> List[str]:
@@ -115,6 +118,8 @@ def fetch_bhavcopy(trading_date: datetime.date) -> Dict[str, Dict[str, float]]:
         except ValueError:
             continue
         result[symbol] = {"volume": volume, "delivery_pct": delivery_pct}
+    if not result:
+        raise RuntimeError(f"Bhavcopy for {trading_date.isoformat()} had no usable SYMBOL rows")
     return result
 
 
