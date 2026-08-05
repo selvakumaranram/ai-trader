@@ -16,8 +16,8 @@ def _ema_series(values: List[float], period: int) -> List[float]:
 
 
 def compute_ema_trend(closes: List[float]) -> Dict[str, object]:
-    if len(closes) < 30:
-        raise ValueError(f"Need at least 30 closes for EMA trend, got {len(closes)}")
+    if len(closes) < 50:
+        raise ValueError(f"Need at least 50 closes for EMA20/50 trend, got {len(closes)}")
     ema20 = _ema_series(closes, 20)[-1]
     ema50 = _ema_series(closes, 50)[-1]
     price = closes[-1]

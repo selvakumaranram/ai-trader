@@ -60,6 +60,14 @@ def test_compute_ema_trend_downtrend_fails():
     assert result["passes"] is False
 
 
+def test_compute_ema_trend_too_few_closes_raises():
+    try:
+        compute_ema_trend(_rising_closes(49))
+        assert False, "expected ValueError"
+    except ValueError:
+        pass
+
+
 def test_compute_volume_increase_rising():
     volumes = [100.0] * 10 + [200.0]  # today is double the trailing average
     assert compute_volume_increase(volumes) == 1.0
@@ -123,9 +131,9 @@ def test_compute_risk_management():
 
 
 def test_compute_momentum_scores_ranks_stronger_symbol_higher():
-    strong_closes = _rising_closes(30, start=100.0, step=2.0)
-    weak_closes = _rising_closes(30, start=100.0, step=0.1)
-    volumes = [1000.0] * 30
+    strong_closes = _rising_closes(55, start=100.0, step=2.0)
+    weak_closes = _rising_closes(55, start=100.0, step=0.1)
+    volumes = [1000.0] * 55
 
     pool = {
         "STRONG": build_symbol_metrics(strong_closes, volumes, None, {}, {}, None),
@@ -136,8 +144,8 @@ def test_compute_momentum_scores_ranks_stronger_symbol_higher():
 
 
 def test_compute_momentum_scores_missing_factor_still_scores():
-    closes = _rising_closes(30)
-    volumes = [1000.0] * 30
+    closes = _rising_closes(55)
+    volumes = [1000.0] * 55
     metrics = build_symbol_metrics(closes, volumes, None, {}, {}, None)
     # delivery_pct is None (no deliveries passed) — must not crash or
     # produce None for the whole score.
