@@ -5,6 +5,7 @@ import StyleSection from "./components/StyleSection.jsx";
 import TopMovers from "./components/TopMovers.jsx";
 import Holdings from "./components/Holdings.jsx";
 import PersonalWatchlist from "./components/PersonalWatchlist.jsx";
+import MomentumSection from "./components/MomentumSection.jsx";
 
 const TABS = [
   { key: "intraday", label: "Day Trading" },
@@ -13,6 +14,7 @@ const TABS = [
   { key: "movers", label: "Top Movers" },
   { key: "holdings", label: "My Holdings" },
   { key: "watchlist", label: "My Watchlist" },
+  { key: "momentum", label: "Momentum" },
 ];
 
 export default function App() {
@@ -62,6 +64,8 @@ export default function App() {
         <Holdings />
       ) : activeTab === "watchlist" ? (
         <PersonalWatchlist />
+      ) : activeTab === "momentum" ? (
+        <MomentumSection />
       ) : (
         <>
           {loading && <p>Loading live market data…</p>}
