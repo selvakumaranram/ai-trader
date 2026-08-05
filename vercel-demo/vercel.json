@@ -4,5 +4,11 @@
     "api/*.py": {
       "maxDuration": 60
     }
-  }
+  },
+  "crons": [
+    {
+      "path": "/api/cron/momentum_screen",
+      "schedule": "30 13 * * 1-5"
+    }
+  ]
 }
