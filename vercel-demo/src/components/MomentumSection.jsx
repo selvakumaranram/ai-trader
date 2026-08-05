@@ -29,7 +29,14 @@ function MoversTab({ rows, returnField }) {
             <div className="asset-card-stats">
               <span
                 className="momentum-return"
-                style={{ color: row[returnField] >= 0 ? "var(--positive)" : "var(--negative)" }}
+                style={{
+                  color:
+                    row[returnField] == null
+                      ? "var(--text-muted)"
+                      : row[returnField] >= 0
+                      ? "var(--positive)"
+                      : "var(--negative)",
+                }}
               >
                 {row[returnField] != null ? `${(row[returnField] * 100).toFixed(2)}%` : "–"}
               </span>
