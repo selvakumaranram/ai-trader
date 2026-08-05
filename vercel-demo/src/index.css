@@ -411,3 +411,82 @@ body {
   flex-direction: column;
   gap: 0.5rem;
 }
+
+.momentum-subtabs {
+  margin-bottom: 1rem;
+}
+
+.momentum-freshness {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 0.75rem;
+}
+
+.momentum-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.momentum-rank {
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-right: 0.4rem;
+}
+
+.momentum-sector,
+.momentum-pe {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  margin-left: 0.6rem;
+}
+
+.momentum-score,
+.momentum-return {
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+.momentum-link {
+  color: var(--accent);
+  text-decoration: none;
+  font-size: 0.85rem;
+}
+
+.momentum-risk {
+  display: flex;
+  gap: 1rem;
+  padding: 0 1rem 0.5rem;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
+.momentum-gate-list {
+  list-style: none;
+  margin: 0;
+  padding: 0 1rem 0.75rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.momentum-gate {
+  display: flex;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  background: var(--card-border);
+}
+
+.momentum-gate-pass {
+  color: var(--positive);
+}
+
+.momentum-gate-fail {
+  color: var(--negative);
+}
+
+.momentum-gate-unknown {
+  color: var(--text-muted);
+}
