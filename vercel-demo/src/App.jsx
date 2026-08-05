@@ -3,12 +3,16 @@ import CapitalInput from "./components/CapitalInput.jsx";
 import SearchBox from "./components/SearchBox.jsx";
 import StyleSection from "./components/StyleSection.jsx";
 import TopMovers from "./components/TopMovers.jsx";
+import Holdings from "./components/Holdings.jsx";
+import PersonalWatchlist from "./components/PersonalWatchlist.jsx";
 
 const TABS = [
   { key: "intraday", label: "Day Trading" },
   { key: "short_term", label: "Short-Term" },
   { key: "swing", label: "Swing / Long-Term" },
   { key: "movers", label: "Top Movers" },
+  { key: "holdings", label: "My Holdings" },
+  { key: "watchlist", label: "My Watchlist" },
 ];
 
 export default function App() {
@@ -68,6 +72,10 @@ export default function App() {
           </nav>
           {activeTab === "movers" ? (
             <TopMovers assets={dashboard.assets} />
+          ) : activeTab === "holdings" ? (
+            <Holdings />
+          ) : activeTab === "watchlist" ? (
+            <PersonalWatchlist />
           ) : (
             <StyleSection assets={dashboard.assets} style={activeTab} capital={capital} />
           )}
