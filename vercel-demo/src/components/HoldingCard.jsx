@@ -8,6 +8,17 @@ const SELL_SIGNAL_COLORS = {
   Hold: "var(--positive)",
 };
 
+function currencyFor(symbol) {
+  const upper = symbol.toUpperCase();
+  return upper.endsWith(".NS") || upper.endsWith(".BO") ? "₹" : "$";
+}
+
+function formatAmount(symbol, value) {
+  const currency = currencyFor(symbol);
+  const locale = currency === "₹" ? "en-IN" : "en-US";
+  return `${currency}${Math.abs(value).toLocaleString(locale)}`;
+}
+
 export default function HoldingCard({ holding, onDelete }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -17,7 +28,10 @@ export default function HoldingCard({ holding, onDelete }) {
         <div className="asset-card-main">
           <span className="asset-symbol">{holding.symbol}</span>
           <span className="holding-qty">
-            {holding.quantity} @ ₹{holding.buy_price}
+            {holding.quantity} @ {formatAmount(holding.symbol, holding.buy_price)}
+          </span>
+          <span className="holding-current-price">
+            Now: {formatAmount(holding.symbol, holding.current_price)}
           </span>
         </div>
         <div className="asset-card-stats">
@@ -25,8 +39,8 @@ export default function HoldingCard({ holding, onDelete }) {
             className="holding-pnl"
             style={{ color: holding.unrealized_pnl >= 0 ? "var(--positive)" : "var(--negative)" }}
           >
-            {holding.unrealized_pnl >= 0 ? "+" : ""}
-            ₹{holding.unrealized_pnl.toLocaleString("en-IN")} ({holding.unrealized_pnl_pct.toFixed(1)}%)
+            {holding.unrealized_pnl >= 0 ? "+" : "-"}
+            {formatAmount(holding.symbol, holding.unrealized_pnl)} ({holding.unrealized_pnl_pct.toFixed(1)}%)
           </span>
           <span
             className="asset-action"

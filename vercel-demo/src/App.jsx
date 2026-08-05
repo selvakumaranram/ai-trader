@@ -46,39 +46,41 @@ export default function App() {
 
       <CapitalInput capital={capital} onChange={setCapital} />
 
-      {loading && <p>Loading live market data…</p>}
-      {error && <p className="error-text">Error: {error}</p>}
+      <nav className="tabs">
+        {TABS.map((tab) => (
+          <button
+            key={tab.key}
+            className={activeTab === tab.key ? "tab active" : "tab"}
+            onClick={() => setActiveTab(tab.key)}
+          >
+            {tab.label}
+          </button>
+        ))}
+      </nav>
 
-      {dashboard && dashboard.warning && <p className="warning-text">{dashboard.warning}</p>}
-      {dashboard && dashboard.failed.length > 0 && (
-        <p className="warning-text">
-          {dashboard.failed.length} asset(s) unavailable this run:{" "}
-          {dashboard.failed.map((f) => f.symbol).join(", ")}
-        </p>
-      )}
-
-      {dashboard && (
+      {activeTab === "holdings" ? (
+        <Holdings />
+      ) : activeTab === "watchlist" ? (
+        <PersonalWatchlist />
+      ) : (
         <>
-          <nav className="tabs">
-            {TABS.map((tab) => (
-              <button
-                key={tab.key}
-                className={activeTab === tab.key ? "tab active" : "tab"}
-                onClick={() => setActiveTab(tab.key)}
-              >
-                {tab.label}
-              </button>
-            ))}
-          </nav>
-          {activeTab === "movers" ? (
-            <TopMovers assets={dashboard.assets} />
-          ) : activeTab === "holdings" ? (
-            <Holdings />
-          ) : activeTab === "watchlist" ? (
-            <PersonalWatchlist />
-          ) : (
-            <StyleSection assets={dashboard.assets} style={activeTab} capital={capital} />
+          {loading && <p>Loading live market data…</p>}
+          {error && <p className="error-text">Error: {error}</p>}
+
+          {dashboard && dashboard.warning && <p className="warning-text">{dashboard.warning}</p>}
+          {dashboard && dashboard.failed.length > 0 && (
+            <p className="warning-text">
+              {dashboard.failed.length} asset(s) unavailable this run:{" "}
+              {dashboard.failed.map((f) => f.symbol).join(", ")}
+            </p>
           )}
+
+          {dashboard &&
+            (activeTab === "movers" ? (
+              <TopMovers assets={dashboard.assets} />
+            ) : (
+              <StyleSection assets={dashboard.assets} style={activeTab} capital={capital} />
+            ))}
         </>
       )}
     </div>

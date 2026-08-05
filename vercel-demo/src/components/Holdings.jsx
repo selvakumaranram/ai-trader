@@ -5,6 +5,7 @@ import HoldingCard from "./HoldingCard.jsx";
 export default function Holdings() {
   const [holdings, setHoldings] = useState(null);
   const [failed, setFailed] = useState([]);
+  const [warning, setWarning] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [form, setForm] = useState({ symbol: "", buy_price: "", quantity: "", buy_date: "" });
@@ -13,10 +14,12 @@ export default function Holdings() {
 
   const load = () => {
     setLoading(true);
+    setError(null);
     apiFetch("/api/holdings")
       .then((data) => {
         setHoldings(data.holdings);
         setFailed(data.failed);
+        setWarning(data.warning || null);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -76,7 +79,7 @@ export default function Holdings() {
         />
         <input
           type="number"
-          step="1"
+          step="any"
           placeholder="Quantity"
           value={form.quantity}
           onChange={(e) => setForm({ ...form, quantity: e.target.value })}
@@ -96,6 +99,7 @@ export default function Holdings() {
 
       {loading && <p>Loading your holdings…</p>}
       {error && <p className="error-text">{error}</p>}
+      {warning && <p className="warning-text">{warning}</p>}
       {failed.length > 0 && (
         <p className="warning-text">
           {failed.length} holding(s) unavailable right now: {failed.map((f) => f.symbol).join(", ")}

@@ -3,8 +3,10 @@ from __future__ import annotations
 import json
 import math
 import os
+import re
 import sys
 import traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import date, datetime
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
@@ -20,11 +22,15 @@ from sources import prices as prices_source
 # Demo-only override: see api/dashboard.py for why.
 recommender.RSS_FEEDS = ["https://finance.yahoo.com/news/rssindex"]
 
+_DEVICE_ID_RE = re.compile(r"^[A-Za-z0-9-]{1,64}$")
+
 
 def _device_id_from_headers(headers) -> str:
     device_id = (headers.get("X-Device-Id") or "").strip()
     if not device_id:
         raise ValueError("Missing X-Device-Id header")
+    if not _DEVICE_ID_RE.match(device_id):
+        raise ValueError("Invalid X-Device-Id header")
     return device_id
 
 
@@ -63,6 +69,10 @@ def _build_holding_result(row, headlines):
     }
 
 
+def _fetch_one_holding(row, headlines):
+    return row, _build_holding_result(row, headlines)
+
+
 def list_holdings(device_id):
     conn = db.get_connection()
     try:
@@ -76,19 +86,27 @@ def list_holdings(device_id):
     finally:
         conn.close()
 
+    warning = None
     try:
         headlines = news_source.fetch_headlines(recommender.RSS_FEEDS)
-    except RuntimeError:
+    except RuntimeError as exc:
         headlines = []
+        warning = f"News sentiment unavailable this run: {exc}"
 
-    holdings = []
+    results = {}
     failed = []
-    for row in rows:
-        try:
-            holdings.append(_build_holding_result(row, headlines))
-        except Exception as exc:
-            failed.append({"id": row["id"], "symbol": row["symbol"], "error": str(exc)})
-    return {"holdings": holdings, "failed": failed}
+    with ThreadPoolExecutor(max_workers=10) as pool:
+        futures = {pool.submit(_fetch_one_holding, row, headlines): row for row in rows}
+        for future in as_completed(futures):
+            row = futures[future]
+            try:
+                _, result = future.result()
+                results[row["id"]] = result
+            except Exception as exc:
+                failed.append({"id": row["id"], "symbol": row["symbol"], "error": str(exc)})
+
+    holdings = [results[row["id"]] for row in rows if row["id"] in results]
+    return {"holdings": holdings, "failed": failed, "warning": warning}
 
 
 def add_holding(device_id, body):
@@ -117,8 +135,12 @@ def add_holding(device_id, body):
     if buy_date > date.today():
         raise ValueError("buy_date cannot be in the future")
 
-    # Fail loudly if the symbol isn't fetchable, before persisting anything.
-    prices_source.fetch_price_history(symbol)
+    # Fail loudly if the symbol isn't fetchable or lacks enough price
+    # history to score (same computation GET will need later), before
+    # persisting anything.
+    closes = prices_source.fetch_price_history(symbol)
+    asset = {"symbol": symbol, "type": None, "keywords": [recommender.derive_fallback_keyword(symbol)]}
+    recommender.build_asset_payload(asset, closes, [])
 
     conn = db.get_connection()
     try:

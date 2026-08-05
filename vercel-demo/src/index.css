@@ -344,6 +344,11 @@ body {
   color: var(--text-muted);
 }
 
+.holding-current-price {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 .holding-pnl {
   font-weight: 600;
   font-variant-numeric: tabular-nums;

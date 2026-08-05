@@ -7,6 +7,7 @@ const STYLES = ["intraday", "short_term", "swing"];
 export default function PersonalWatchlist() {
   const [items, setItems] = useState(null);
   const [failed, setFailed] = useState([]);
+  const [warning, setWarning] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(true);
   const [symbol, setSymbol] = useState("");
@@ -15,10 +16,12 @@ export default function PersonalWatchlist() {
 
   const load = () => {
     setLoading(true);
+    setError(null);
     apiFetch("/api/watchlist")
       .then((data) => {
         setItems(data.watchlist);
         setFailed(data.failed);
+        setWarning(data.warning || null);
       })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
@@ -72,6 +75,7 @@ export default function PersonalWatchlist() {
 
       {loading && <p>Loading your watchlist…</p>}
       {error && <p className="error-text">{error}</p>}
+      {warning && <p className="warning-text">{warning}</p>}
       {failed.length > 0 && (
         <p className="warning-text">
           {failed.length} symbol(s) unavailable right now: {failed.map((f) => f.symbol).join(", ")}
