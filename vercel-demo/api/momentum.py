@@ -63,6 +63,7 @@ def get_momentum(tab: str) -> dict:
                 column = _SORT_COLUMN[tab]
                 cur.execute(
                     f"SELECT * FROM momentum_rankings WHERE run_date = %s "
+                    f"AND quality_gate_detail->>'market_cap' = 'pass' "
                     f"ORDER BY {column} DESC NULLS LAST LIMIT 20",
                     (run_date,),
                 )
