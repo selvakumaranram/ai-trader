@@ -382,3 +382,27 @@ body {
   font-size: 0.85rem;
   font-style: italic;
 }
+
+.watchlist-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.watchlist-item-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.watchlist-item-symbol {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.watchlist-item-cards {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
