@@ -22,6 +22,8 @@ def _fetch_fundamentals(yf_symbol: str) -> dict:
     gate (see momentum_screen.evaluate_quality_gates)."""
     try:
         info = yf.Ticker(yf_symbol).info
+        if not isinstance(info, dict):
+            raise ValueError("`.info` did not return a dict")
     except Exception:
         return {
             "market_cap_cr": None, "promoter_holding_pct": None,
@@ -72,6 +74,8 @@ def _fetch_one(bare_symbol: str, nse_flags: dict, bhavcopy: dict) -> tuple:
     avg_price = sum(ohlcv["close"][-10:]) / len(ohlcv["close"][-10:])
     avg_volume = sum(volumes[-10:]) / len(volumes[-10:])
     avg_daily_traded_value_cr = (avg_price * avg_volume) / 1e7
+    if avg_daily_traded_value_cr != avg_daily_traded_value_cr:  # NaN check
+        avg_daily_traded_value_cr = None
 
     metrics = momentum_screen.build_symbol_metrics(
         closes=ohlcv["close"],
@@ -87,7 +91,7 @@ def _fetch_one(bare_symbol: str, nse_flags: dict, bhavcopy: dict) -> tuple:
 
 
 def run_screen() -> dict:
-    symbols = nse_source.fetch_nifty200_symbols()
+    symbols = [s.strip().upper() for s in nse_source.fetch_nifty200_symbols()]
 
     fo_ban = nse_source.fetch_fo_ban_symbols()
     asm = nse_source.fetch_asm_symbols()
@@ -137,6 +141,12 @@ def run_screen() -> dict:
             metrics["risk"]["target_low"],
             metrics["risk"]["target_high"],
         ))
+
+    if not rows:
+        raise RuntimeError(
+            f"No symbols were successfully scored for {trading_day.isoformat()} — "
+            "refusing to touch momentum_rankings"
+        )
 
     conn = db.get_connection()
     try:
