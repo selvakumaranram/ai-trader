@@ -65,7 +65,7 @@ export default function App() {
       ) : activeTab === "watchlist" ? (
         <PersonalWatchlist />
       ) : activeTab === "momentum" ? (
-        <MomentumSection />
+        <MomentumSection capital={capital} />
       ) : (
         <>
           {loading && <p>Loading live market data…</p>}

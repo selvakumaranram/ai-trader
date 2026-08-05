@@ -52,6 +52,12 @@ def get_momentum(tab: str) -> dict:
             if run_date is None:
                 raise LookupError("No momentum screen has run yet")
 
+            cur.execute(
+                "SELECT COUNT(*) AS total FROM momentum_rankings WHERE run_date = %s",
+                (run_date,),
+            )
+            total_screened = cur.fetchone()["total"]
+
             if tab == "screener":
                 cur.execute(
                     "SELECT * FROM momentum_rankings WHERE run_date = %s "
@@ -72,7 +78,12 @@ def get_momentum(tab: str) -> dict:
         conn.close()
 
     stale = (datetime.date.today() - run_date).days > _STALE_AFTER_DAYS
-    return {"run_date": run_date.isoformat(), "stale": stale, "rows": [_row_to_dict(r) for r in rows]}
+    return {
+        "run_date": run_date.isoformat(),
+        "stale": stale,
+        "total_screened": total_screened,
+        "rows": [_row_to_dict(r) for r in rows],
+    }
 
 
 class handler(BaseHTTPRequestHandler):

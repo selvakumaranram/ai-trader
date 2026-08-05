@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS momentum_rankings (
     stop_loss NUMERIC,
     target_low NUMERIC,
     target_high NUMERIC,
-    created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    UNIQUE (run_date, symbol)
 );
 CREATE INDEX IF NOT EXISTS idx_momentum_rankings_run_date ON momentum_rankings(run_date);

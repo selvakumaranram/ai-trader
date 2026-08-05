@@ -51,18 +51,24 @@ function MoversTab({ rows, returnField }) {
   );
 }
 
-export default function MomentumSection() {
+export default function MomentumSection({ capital }) {
   const [activeSubTab, setActiveSubTab] = useState("screener");
   const [data, setData] = useState(null);
   const [error, setError] = useState(null);
+  const [notYetRun, setNotYetRun] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     setLoading(true);
     setError(null);
+    setNotYetRun(false);
     fetch(`/api/momentum?tab=${activeSubTab}`)
-      .then((res) => res.json())
-      .then((body) => {
+      .then((res) => res.json().then((body) => ({ status: res.status, body })))
+      .then(({ status, body }) => {
+        if (status === 503) {
+          setNotYetRun(true);
+          return;
+        }
         if (body.error) throw new Error(body.error);
         setData(body);
       })
@@ -85,16 +91,21 @@ export default function MomentumSection() {
       </nav>
 
       {loading && <p>Loading momentum data…</p>}
+      {notYetRun && (
+        <p className="empty-state">
+          The first momentum screen hasn't run yet — check back after the next scheduled run.
+        </p>
+      )}
       {error && <p className="error-text">{error}</p>}
 
       {data && (
         <>
           <p className="momentum-freshness">
-            As of {data.run_date}
+            Screened {data.total_screened} symbols as of {data.run_date}
             {data.stale && <span className="warning-text"> — data is more than 2 days old</span>}
           </p>
           {activeSubTab === "screener" ? (
-            <MomentumScreenerTab rows={data.rows} />
+            <MomentumScreenerTab rows={data.rows} capital={capital} />
           ) : (
             <MoversTab rows={data.rows} returnField={RETURN_FIELD[activeSubTab]} />
           )}

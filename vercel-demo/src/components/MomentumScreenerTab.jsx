@@ -1,3 +1,5 @@
+import { sizePositions } from "../lib/positionSizing.js";
+
 const GATE_LABELS = {
   market_cap: "Market cap > ₹5,000 Cr",
   avg_daily_traded_value: "Avg daily traded value > ₹10 Cr",
@@ -28,13 +30,17 @@ function GateBreakdown({ detail }) {
   );
 }
 
-export default function MomentumScreenerTab({ rows }) {
+export default function MomentumScreenerTab({ rows, capital }) {
   if (rows.length === 0) {
     return <p className="empty-state">No symbols passed every quality gate in the latest run.</p>;
   }
+  const sized = sizePositions(
+    rows.map((r) => ({ ...r, score: r.momentum_score ?? 0 })),
+    capital
+  );
   return (
     <div className="momentum-list">
-      {rows.map((row, index) => {
+      {sized.map((row, index) => {
         const badge = VOLUME_BADGE[row.volume_confirmation] || VOLUME_BADGE.none;
         return (
           <div key={row.symbol} className="asset-card momentum-card">
@@ -59,6 +65,7 @@ export default function MomentumScreenerTab({ rows }) {
               <span>
                 Target ₹{row.target_low?.toLocaleString("en-IN")}–{row.target_high?.toLocaleString("en-IN")}
               </span>
+              {row.suggested > 0 && <span>Suggested ₹{row.suggested.toLocaleString("en-IN")}</span>}
             </div>
             <GateBreakdown detail={row.quality_gate_detail} />
           </div>

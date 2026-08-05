@@ -3,6 +3,9 @@
   "functions": {
     "api/*.py": {
       "maxDuration": 60
+    },
+    "api/cron/*.py": {
+      "maxDuration": 300
     }
   },
   "crons": [

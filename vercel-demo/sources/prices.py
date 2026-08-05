@@ -28,6 +28,8 @@ def fetch_ohlcv_history(yf_symbol: str, period: str = "6mo") -> Dict[str, List[f
         close = _extract("Close")
     except KeyError:
         raise RuntimeError(f"No 'Close' column in price data for {yf_symbol!r}") from None
+    except (ValueError, TypeError) as exc:
+        raise RuntimeError(f"Non-numeric value in 'Close' column for {yf_symbol!r}: {exc}") from exc
 
     raw: Dict[str, List[float]] = {"close": close}
     for label, column in _COLUMNS:
@@ -35,23 +37,31 @@ def fetch_ohlcv_history(yf_symbol: str, period: str = "6mo") -> Dict[str, List[f
             continue
         try:
             raw[label] = _extract(column)
-        except KeyError:
+        except (KeyError, ValueError, TypeError):
             # Close is the only hard requirement (matches the pre-OHLCV
-            # fetch_price_history contract exactly) — a missing
-            # Open/High/Low/Volume column degrades to NaN-filled rather
-            # than aborting the whole fetch, since callers of those
-            # columns already have to tolerate a stray NaN per-row.
+            # fetch_price_history contract exactly) — a missing OR
+            # non-numeric Open/High/Low/Volume column degrades to
+            # NaN-filled rather than aborting the whole fetch, since
+            # callers of those columns already have to tolerate a stray
+            # NaN per-row.
             raw[label] = [float("nan")] * len(close)
+
+    try:
+        dates = [ts.date().isoformat() for ts in data.index]
+    except Exception:
+        dates = [None] * len(close)
 
     # Demo-only relaxation (unchanged from the original close-only
     # version): drop rows where Close is NaN rather than aborting the
     # whole ranking run. Row selection is driven by Close alone, matching
     # the pre-OHLCV behavior exactly, so existing close-only callers see
-    # no behavior change. Open/High/Low/Volume are carried along using
-    # the same row selection — callers using those columns must tolerate
-    # an occasional stray NaN on a day Close happened to be valid.
+    # no behavior change. Open/High/Low/Volume/dates are carried along
+    # using the same row selection — callers using those columns must
+    # tolerate an occasional stray NaN/None on a day Close happened to be
+    # valid.
     valid_rows = [i for i, c in enumerate(raw["close"]) if c == c]  # NaN != NaN
     result = {label: [raw[label][i] for i in valid_rows] for label, _ in _COLUMNS}
+    result["dates"] = [dates[i] for i in valid_rows]
     if not result["close"]:
         raise RuntimeError(f"Price data for {yf_symbol!r} is entirely NaN")
     return result
