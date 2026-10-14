@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import db
 import http_utils
+import psycopg2.errors
 import recommender
 from sources import news as news_source
 from sources import prices as prices_source
@@ -75,16 +76,16 @@ def add_to_watchlist(device_id, body):
     conn = db.get_connection()
     try:
         with conn.cursor() as cur:
-            cur.execute(
-                "SELECT 1 FROM watchlist WHERE device_id = %s AND symbol = %s",
-                (device_id, symbol),
-            )
-            if cur.fetchone() is not None:
-                raise LookupError("already in your watchlist")
-            cur.execute(
-                "INSERT INTO watchlist (device_id, symbol) VALUES (%s, %s) RETURNING id, symbol",
-                (device_id, symbol),
-            )
+            try:
+                cur.execute(
+                    "INSERT INTO watchlist (device_id, symbol) VALUES (%s, %s) RETURNING id, symbol",
+                    (device_id, symbol),
+                )
+            except psycopg2.errors.UniqueViolation:
+                # The UNIQUE (device_id, symbol) constraint is the source of
+                # truth; a SELECT-then-INSERT pre-check would race.
+                conn.rollback()
+                raise LookupError("already in your watchlist") from None
             row = cur.fetchone()
         conn.commit()
     finally:

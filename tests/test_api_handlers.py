@@ -156,3 +156,24 @@ def test_backtest_success(monkeypatch):
     response = call(backtest_api.handler, "GET", "/api/backtest?symbol=TEST&short=5&long=20")
     assert response.status == 200
     assert "Backtest for TEST" in response.text
+
+
+import psycopg2.errors
+
+
+def test_watchlist_duplicate_insert_is_409(monkeypatch):
+    monkeypatch.setattr(watchlist.prices_source, "fetch_price_history", lambda s, period="6mo": _rising())
+
+    def on_execute(sql, params):
+        if sql.lstrip().upper().startswith("INSERT"):
+            raise psycopg2.errors.UniqueViolation("duplicate key value violates unique constraint")
+        return []
+
+    conn = FakeConnection(on_execute=on_execute)
+    monkeypatch.setattr(watchlist.db, "get_connection", lambda: conn)
+
+    response = call(watchlist.handler, "POST", "/api/watchlist", DEVICE, b'{"symbol": "INFY.NS"}')
+
+    assert response.status == 409
+    assert response.json() == {"error": "already in your watchlist"}
+    assert conn.rolled_back and conn.closed
