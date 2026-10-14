@@ -1,5 +1,7 @@
-yfinance>=0.2
-feedparser>=6.0
-vaderSentiment>=3.3.2
-psycopg2-binary>=2.9
-requests>=2.31
+# Exact pins for reproducible Vercel builds (verified locally 2026-10-13).
+# Transitive dependencies (e.g. pandas via yfinance) are not pinned yet.
+yfinance==1.5.2
+feedparser==6.0.12
+vaderSentiment==3.3.2
+psycopg2-binary==2.9.12
+requests==2.34.2

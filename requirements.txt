@@ -1,9 +1,2 @@
-# Phase 1 hard requirements — real price data, RSS parsing, sentiment scoring
-yfinance>=0.2
-feedparser>=6.0
-vaderSentiment>=3.3.2
-
-# Optional dependencies for later phases (Phase 2 backtesting upgrade)
-# pandas>=2.0
-# numpy>=1.26
-# matplotlib>=3.8
+# The canonical runtime dependencies live with the deployed code.
+-r vercel-demo/requirements.txt

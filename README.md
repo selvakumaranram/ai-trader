@@ -24,16 +24,19 @@ Turns researched ideas into backtested, paper-traded, then (optionally) live str
 ## Repository structure
 
 ```
-quantdesk/
-├── README.md              # this file
-├── recommender.py         # Phase 1: research + recommendation + position sizing
-├── backtest.py            # Phase 2 seed: SMA-crossover backtester vs buy-and-hold
-├── dashboard.html         # sample output from recommender.py
-│
-├── sources/               # data adapters — prices.py (yfinance), news.py (RSS + VADER sentiment)
-├── strategies/            # (planned) strategy definitions for backtesting
-├── engine/                # (planned) paper-trading + execution loop
-└── data/                  # (planned) cached prices, news, sentiment scores
+ai-trader/
+├── AI_Trader_README.md     # product vision & phased requirements for AI Trader
+├── docs/                   # discovery report, design specs, implementation plans
+├── requirements*.txt       # root installs point at vercel-demo/requirements.txt
+├── tests/                  # pytest suite (targets vercel-demo/ code)
+└── vercel-demo/            # the canonical app: React/Vite UI + Python API on Vercel
+    ├── api/                # serverless handlers (dashboard, search, holdings, watchlist, momentum, backtest, cron)
+    ├── sources/            # data adapters: prices (yfinance), news (RSS+VADER), nse
+    ├── recommender.py      # momentum+sentiment scoring; also a CLI
+    ├── momentum_screen.py  # Nifty 200 momentum screener scoring
+    ├── backtest.py         # SMA-crossover backtest; also a CLI
+    ├── http_utils.py       # shared API response/error/CORS helpers
+    └── schema.sql          # Postgres schema (apply manually)
 ```
 
 ---
@@ -79,6 +82,8 @@ Suggested deployed: Rs 15,000  |  Cash buffer: Rs 10,000
 
 ## Phase 2: Full Algo Trading (roadmap)
 
+> The current, authoritative roadmap is [AI_Trader_README.md](AI_Trader_README.md) (NIFTY/BANKNIFTY long options, research + paper trading first). The list below is the original QuantDesk plan, kept for context.
+
 Grounded in the accompanying research report. Ordered so nothing risky ships early:
 
 1. **Backtesting foundation** — extend `backtest.py`; migrate to **VectorBT** / **PyBroker** for fast, validated research. Drill look-ahead bias, costs, slippage, and walk-forward validation.
@@ -92,7 +97,7 @@ Grounded in the accompanying research report. Ordered so nothing risky ships ear
 
 ## Tech stack
 
-- **Language:** Python 3.10+
+- **Language:** Python 3.12 (pinned in `vercel-demo/.python-version`; CI runs 3.12)
 - **Data:** yfinance / Kite Connect (prices), RSS + Reddit API + YouTube Data API (news & sentiment)
 - **Sentiment:** VADER (lexicon-based, current) → FinBERT / LLM (future upgrade path)
 - **Backtesting:** VectorBT / PyBroker / QuantConnect LEAN; Freqtrade for crypto
@@ -119,18 +124,37 @@ Grounded in the accompanying research report. Ordered so nothing risky ships ear
 ## Quick start
 
 ```bash
-git clone <your-repo-url> quantdesk && cd quantdesk
-
-pip install -r requirements.txt   # yfinance, feedparser, vaderSentiment
-
-python recommender.py             # prints watchlist + writes dashboard.html
-python backtest.py RELIANCE.NS 20 50
+pip install -r requirements-dev.txt
+python -m pytest -q
+python vercel-demo/recommender.py             # prints rankings + writes vercel-demo/dashboard.html
+python vercel-demo/backtest.py RELIANCE.NS 20 50
+cd vercel-demo && npm ci && npm run build      # frontend
 ```
 
-Then edit `CAPITAL` and `UNIVERSE` at the top of `recommender.py` to match yours.
+Then edit `CAPITAL` and `UNIVERSE` at the top of `vercel-demo/recommender.py` to match yours.
 Both scripts fetch live prices and news over the network on every run — there
 is no offline or cached mode. A fetch failure aborts the run with an error
 naming the symbol or feed that failed.
+
+### Configuration (environment variables)
+
+| Variable | Required | Purpose |
+|---|---|---|
+| `DATABASE_URL` / `POSTGRES_URL` | for holdings, watchlist, momentum | Postgres connection string. Keep it in `.env` or Vercel env vars, never in git. |
+| `CRON_SECRET` | **yes, for the momentum cron** | The cron endpoint refuses to run (503) without it. Vercel Cron sends it automatically as a Bearer token once set. |
+| `ALLOWED_ORIGINS` | no | Comma-separated origins allowed to call the API cross-origin. The same-origin UI needs nothing. |
+
+### Phase 0 changes (2026-10)
+
+Intentional behaviour changes from the AI Trader Phase 0 stabilisation:
+
+- The root CLI moved to `vercel-demo/` (single source of truth). It now ranks the 40-asset universe using the working Yahoo RSS feed, and drops NaN closes instead of aborting.
+- API 500 responses return `{"error": "Internal server error"}`; full details go to the server log only.
+- No wildcard CORS. Cross-origin access is opt-in via `ALLOWED_ORIGINS`.
+- The momentum cron requires `CRON_SECRET` (**set it in Vercel before deploying**, or the daily screen will not run).
+- `/api/backtest` validates `short`/`long` and returns 400 for bad values.
+- Adding a duplicate watchlist symbol returns 409, even under a concurrent double-submit.
+- POST bodies over 64 KiB are rejected with 413.
 
 ---
 
