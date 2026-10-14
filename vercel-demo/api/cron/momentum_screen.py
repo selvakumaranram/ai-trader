@@ -10,6 +10,7 @@ from http.server import BaseHTTPRequestHandler
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", ".."))
 
 import db
+import http_utils
 import momentum_screen
 import yfinance as yf
 from sources import nse as nse_source
@@ -223,24 +224,22 @@ def run_screen() -> dict:
 
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
-        cron_secret = os.environ.get("CRON_SECRET")
-        if cron_secret:
-            auth_header = self.headers.get("Authorization", "")
-            if auth_header != f"Bearer {cron_secret}":
-                self._send_json(401, {"error": "Unauthorized"})
-                return
+        cron_secret = os.environ.get("CRON_SECRET", "")
+        if not cron_secret:
+            # Fail closed: an unauthenticated trigger could fan out ~200
+            # symbols of NSE/Yahoo traffic on demand.
+            http_utils.send_json(self, 503, {"error": "CRON_SECRET is not configured; refusing to run"})
+            return
+        if not http_utils.bearer_token_matches(self.headers, cron_secret):
+            http_utils.send_json(self, 401, {"error": "Unauthorized"})
+            return
 
         try:
-            payload = run_screen()
-            status = 200
+            payload, status = run_screen(), 200
+        except RuntimeError as exc:
+            # Messages raised by run_screen itself; the caller is authenticated.
+            http_utils.internal_error(exc)
+            payload, status = {"error": str(exc)}, 500
         except Exception as exc:
-            payload = {"error": str(exc)}
-            status = 500
-        self._send_json(status, payload)
-
-    def _send_json(self, status: int, payload: dict) -> None:
-        body = json.dumps(payload).encode("utf-8")
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.end_headers()
-        self.wfile.write(body)
+            payload, status = http_utils.internal_error(exc), 500
+        http_utils.send_json(self, status, payload)
