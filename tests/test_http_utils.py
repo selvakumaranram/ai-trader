@@ -94,3 +94,10 @@ def test_bearer_token_matches():
     assert http_utils.bearer_token_matches(_headers(Authorization="Bearer s3cret"), "s3cret")
     assert not http_utils.bearer_token_matches(_headers(Authorization="Bearer wrong"), "s3cret")
     assert not http_utils.bearer_token_matches(_headers(), "s3cret")
+
+
+def test_read_json_object_rejects_deeply_nested_json():
+    body = b"[" * 32000 + b"]" * 32000  # under MAX_BODY_BYTES; overflows the decoder on 3.12 and 3.14
+    with pytest.raises(http_utils.HttpError) as info:
+        http_utils.read_json_object(_request(body, str(len(body))))
+    assert info.value.status == 400

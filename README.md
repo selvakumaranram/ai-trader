@@ -142,7 +142,7 @@ naming the symbol or feed that failed.
 |---|---|---|
 | `DATABASE_URL` / `POSTGRES_URL` | for holdings, watchlist, momentum | Postgres connection string. Keep it in `.env` or Vercel env vars, never in git. |
 | `CRON_SECRET` | **yes, for the momentum cron** | The cron endpoint refuses to run (503) without it. Vercel Cron sends it automatically as a Bearer token once set. |
-| `ALLOWED_ORIGINS` | no | Comma-separated origins allowed to call the API cross-origin. The same-origin UI needs nothing. |
+| `ALLOWED_ORIGINS` | no | Comma-separated origins whose **simple GET** requests (dashboard, search, momentum, backtest) get a CORS header. Preflighted requests (holdings/watchlist with `X-Device-Id`, JSON POSTs, DELETE) are not supported cross-origin, because there is no `OPTIONS` handler. The same-origin UI needs nothing. |
 
 ### Phase 0 changes (2026-10)
 
@@ -150,7 +150,7 @@ Intentional behaviour changes from the AI Trader Phase 0 stabilisation:
 
 - The root CLI moved to `vercel-demo/` (single source of truth). It now ranks the 40-asset universe using the working Yahoo RSS feed, and drops NaN closes instead of aborting.
 - API 500 responses return `{"error": "Internal server error"}`; full details go to the server log only.
-- No wildcard CORS. Cross-origin access is opt-in via `ALLOWED_ORIGINS`.
+- No wildcard CORS. Cross-origin simple GETs are opt-in via `ALLOWED_ORIGINS`; preflighted cross-origin requests are not supported.
 - The momentum cron requires `CRON_SECRET` (**set it in Vercel before deploying**, or the daily screen will not run).
 - `/api/backtest` validates `short`/`long` and returns 400 for bad values.
 - Adding a duplicate watchlist symbol returns 409, even under a concurrent double-submit.

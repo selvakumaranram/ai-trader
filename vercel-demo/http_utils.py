@@ -44,7 +44,8 @@ def read_json_object(handler) -> dict:
     raw = handler.rfile.read(length) if length else b""
     try:
         body = json.loads(raw or b"{}")
-    except ValueError:
+    except (ValueError, RecursionError):
+        # RecursionError: pathologically nested JSON that still fits the size cap.
         raise HttpError(400, "Request body must be valid JSON") from None
     if not isinstance(body, dict):
         raise HttpError(400, "Request body must be a JSON object")
