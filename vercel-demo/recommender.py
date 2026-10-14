@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import html
 import os
 import re
 from typing import Dict, List
@@ -50,11 +51,10 @@ UNIVERSE = [
     {"symbol": "NTPC", "yf_symbol": "NTPC.NS", "type": "equity_in", "keywords": ["ntpc", "power", "energy", "psu", "electricity"]},
 ]
 
-RSS_FEEDS = [
-    "https://feeds.feedburner.com/cointelegraph",
-    "https://feeds.feedburner.com/techcrunch/startups",
-    "https://www.moneycontrol.com/rss/marketnews.xml",
-]
+# The previous feedburner/moneycontrol URLs returned zero entries and were
+# overridden at import time in every API module; this is now the single
+# source of truth.
+RSS_FEEDS = ["https://finance.yahoo.com/news/rssindex"]
 
 STYLE = "short_term"
 CAPITAL = 25000
@@ -184,6 +184,42 @@ def format_table(rows: List[Dict[str, object]]) -> str:
     return "\n".join(body)
 
 
+def write_dashboard(rows: List[Dict[str, object]], path: str = "dashboard.html") -> None:
+    items = []
+    for row in rows:
+        items.append(
+            f"<li><strong>{html.escape(str(row['symbol']))}</strong> — {html.escape(str(row['type']))} — "
+            f"score {row['score']:.3f} — suggested Rs {int(row['suggested']):,} — {html.escape(str(row['action']))}</li>"
+        )
+
+    page = f"""<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>QuantDesk Research Dashboard</title>
+  <style>
+    body {{ font-family: Arial, sans-serif; margin: 2rem; background: #07111f; color: #e7eefc; }}
+    .card {{ background: #10233c; border: 1px solid #2f4b72; border-radius: 12px; padding: 1.5rem; max-width: 840px; }}
+    ul {{ line-height: 1.7; }}
+    .meta {{ color: #89a6c9; margin-bottom: 1rem; }}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>QuantDesk Research Dashboard</h1>
+    <p class="meta">Capital: Rs {CAPITAL:,.0f} • Style: {STYLE} • Feeds: {len(RSS_FEEDS)}</p>
+    <ul>
+      {''.join(items)}
+    </ul>
+  </div>
+</body>
+</html>
+"""
+    with open(path, "w", encoding="utf-8") as handle:
+        handle.write(page)
+
+
 def main() -> None:
     rows = build_rankings()
     print("QuantDesk — Research & Recommendation")
@@ -191,6 +227,10 @@ def main() -> None:
     print(format_table(rows))
     deployed = sum(row["suggested"] for row in rows if row["suggested"] > 0)
     print(f"\nSuggested deployed: Rs {deployed:,.0f} | Cash buffer: Rs {CAPITAL - deployed:,.0f}")
+
+    output_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), "dashboard.html")
+    write_dashboard(rows, output_path)
+    print(f"\nDashboard written to {output_path}")
 
 
 if __name__ == "__main__":

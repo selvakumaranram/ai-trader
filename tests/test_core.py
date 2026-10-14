@@ -1,7 +1,4 @@
-import os
 import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 import pytest
 
@@ -61,3 +58,30 @@ def test_backtest_main_runs_without_syntax_error(monkeypatch, capsys):
 
     captured = capsys.readouterr()
     assert "Backtest for TEST" in captured.out
+
+
+def test_rss_feeds_are_canonical_not_overridden():
+    assert recommender.RSS_FEEDS == ["https://finance.yahoo.com/news/rssindex"]
+
+
+def test_derive_fallback_keyword_strips_exchange_suffixes():
+    assert recommender.derive_fallback_keyword("RELIANCE.NS") == "reliance"
+    assert recommender.derive_fallback_keyword("btc-usd") == "btc"
+
+
+def test_build_asset_payload_scores_every_style():
+    asset = {"symbol": "TEST", "type": "equity_in", "keywords": ["test"]}
+    payload = recommender.build_asset_payload(asset, _rising_closes(), [])
+    assert set(payload["scores"]) == {"intraday", "short_term", "swing"}
+    assert payload["sentiment"] == 0.0
+
+
+def test_write_dashboard_writes_escaped_html(tmp_path):
+    rows = [{"symbol": "<b>X</b>", "type": "equity_in", "score": 0.2, "suggested": 1000, "action": "Research LONG"}]
+    path = tmp_path / "dashboard.html"
+
+    recommender.write_dashboard(rows, str(path))
+
+    html = path.read_text(encoding="utf-8")
+    assert "&lt;b&gt;X&lt;/b&gt;" in html
+    assert "<b>X</b>" not in html

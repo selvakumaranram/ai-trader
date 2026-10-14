@@ -13,11 +13,6 @@ import recommender
 from sources import news as news_source
 from sources import prices as prices_source
 
-# Demo-only override: the repo's real RSS_FEEDS URLs are confirmed dead
-# (feedburner.com / moneycontrol both return 0 entries). Matches the same
-# override previously used in the now-removed api/recommend.py.
-recommender.RSS_FEEDS = ["https://finance.yahoo.com/news/rssindex"]
-
 
 def _fetch_one(asset):
     closes = prices_source.fetch_price_history(asset["yf_symbol"])

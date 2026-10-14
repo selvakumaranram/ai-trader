@@ -19,9 +19,6 @@ from holdings_logic import compute_holding_period, compute_sell_signal
 from sources import news as news_source
 from sources import prices as prices_source
 
-# Demo-only override: see api/dashboard.py for why.
-recommender.RSS_FEEDS = ["https://finance.yahoo.com/news/rssindex"]
-
 _DEVICE_ID_RE = re.compile(r"^[A-Za-z0-9-]{1,64}$")
 
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import math
+import sys
 from typing import List, Tuple
 
 from sources import prices as prices_source
@@ -41,3 +42,24 @@ def run_backtest(prices: List[float], short_window: int, long_window: int) -> Tu
 
     buy_hold = prices[-1] / prices[0] * 10000.0
     return round(cash, 2), round(buy_hold, 2), len(prices)
+
+
+def main() -> None:
+    symbol = sys.argv[1] if len(sys.argv) > 1 else "RELIANCE.NS"
+    short_window = int(sys.argv[2]) if len(sys.argv) > 2 else 20
+    long_window = int(sys.argv[3]) if len(sys.argv) > 3 else 50
+
+    prices = prices_source.fetch_price_history(symbol, period="1y")
+    strategy_value, buy_hold_value, periods = run_backtest(prices, short_window, long_window)
+
+    print(f"Backtest for {symbol} | periods={periods} | short={short_window} | long={long_window}")
+    print(f"Strategy final value: Rs {strategy_value:,.2f}")
+    print(f"Buy-and-hold value:  Rs {buy_hold_value:,.2f}")
+    if strategy_value > buy_hold_value:
+        print("Outcome: strategy outperformed buy-and-hold for this symbol.")
+    else:
+        print("Outcome: strategy underperformed buy-and-hold for this symbol.")
+
+
+if __name__ == "__main__":
+    main()

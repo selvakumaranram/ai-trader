@@ -1,8 +1,3 @@
-import os
-import sys
-
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
-
 import pytest
 
 from sources import prices
@@ -22,7 +17,8 @@ class _FakeFrame:
         self._close = _FakeSeries(values)
 
     def __getitem__(self, key):
-        assert key == "Close"
+        if key != "Close":
+            raise KeyError(key)
         return self._close
 
 
@@ -69,8 +65,14 @@ def test_fetch_price_history_raises_on_missing_close_column(monkeypatch):
     assert "Close" in str(exc_info.value)
 
 
-def test_fetch_price_history_raises_on_nan_close(monkeypatch):
+def test_fetch_price_history_drops_nan_closes(monkeypatch):
     monkeypatch.setattr(prices.yf, "download", lambda *a, **k: _FakeFrame([100.0, float("nan"), 99.0]))
+
+    assert prices.fetch_price_history("TEST") == [100.0, 99.0]
+
+
+def test_fetch_price_history_raises_when_every_close_is_nan(monkeypatch):
+    monkeypatch.setattr(prices.yf, "download", lambda *a, **k: _FakeFrame([float("nan"), float("nan")]))
 
     with pytest.raises(RuntimeError):
         prices.fetch_price_history("TEST")

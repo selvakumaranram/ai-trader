@@ -1,8 +1,3 @@
-import os
-import sys
-
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "vercel-demo"))
-
 from momentum_screen import (
     compute_ema_trend,
     compute_returns,

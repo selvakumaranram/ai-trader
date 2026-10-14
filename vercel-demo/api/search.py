@@ -13,9 +13,6 @@ import recommender
 from sources import news as news_source
 from sources import prices as prices_source
 
-# Demo-only override: see api/dashboard.py for why.
-recommender.RSS_FEEDS = ["https://finance.yahoo.com/news/rssindex"]
-
 
 def search_symbol(raw_symbol: str) -> dict:
     symbol = raw_symbol.strip().upper()
