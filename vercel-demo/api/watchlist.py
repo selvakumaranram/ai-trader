@@ -1,10 +1,7 @@
 from __future__ import annotations
 
-import json
 import os
-import re
 import sys
-import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
@@ -12,21 +9,10 @@ from urllib.parse import urlparse, parse_qs
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import db
+import http_utils
 import recommender
 from sources import news as news_source
 from sources import prices as prices_source
-
-_DEVICE_ID_RE = re.compile(r"^[A-Za-z0-9-]{1,64}$")
-
-
-def _device_id_from_headers(headers) -> str:
-    device_id = (headers.get("X-Device-Id") or "").strip()
-    if not device_id:
-        raise ValueError("Missing X-Device-Id header")
-    if not _DEVICE_ID_RE.match(device_id):
-        raise ValueError("Invalid X-Device-Id header")
-    return device_id
-
 
 def _fetch_one_watchlist_item(row, headlines):
     symbol = row["symbol"]
@@ -126,67 +112,48 @@ def delete_from_watchlist(device_id, watchlist_id):
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
-            device_id = _device_id_from_headers(self.headers)
-            payload = list_watchlist(device_id)
-            status = 200
+            device_id = http_utils.device_id_from_headers(self.headers)
+            payload, status = list_watchlist(device_id), 200
+        except http_utils.HttpError as exc:
+            payload, status = {"error": str(exc)}, exc.status
         except ValueError as exc:
-            payload = {"error": str(exc)}
-            status = 400
+            payload, status = {"error": str(exc)}, 400
         except Exception as exc:
-            payload = {"error": str(exc), "traceback": traceback.format_exc()}
-            status = 500
-        self._send_json(status, payload)
+            payload, status = http_utils.internal_error(exc), 500
+        http_utils.send_json(self, status, payload)
 
     def do_POST(self):
         try:
-            device_id = _device_id_from_headers(self.headers)
-            length = int(self.headers.get("Content-Length", 0))
-            body = json.loads(self.rfile.read(length) or b"{}")
-            if not isinstance(body, dict):
-                raise ValueError("Request body must be a JSON object")
-            payload = add_to_watchlist(device_id, body)
-            status = 201
+            device_id = http_utils.device_id_from_headers(self.headers)
+            body = http_utils.read_json_object(self)
+            payload, status = add_to_watchlist(device_id, body), 201
+        except http_utils.HttpError as exc:
+            payload, status = {"error": str(exc)}, exc.status
         except ValueError as exc:
-            payload = {"error": str(exc)}
-            status = 400
+            payload, status = {"error": str(exc)}, 400
         except LookupError as exc:
-            payload = {"error": str(exc)}
-            status = 409
+            payload, status = {"error": str(exc)}, 409
         except RuntimeError as exc:
-            payload = {"error": str(exc)}
-            status = 502
+            payload, status = {"error": str(exc)}, 502
         except Exception as exc:
-            payload = {"error": str(exc), "traceback": traceback.format_exc()}
-            status = 500
-        self._send_json(status, payload)
+            payload, status = http_utils.internal_error(exc), 500
+        http_utils.send_json(self, status, payload)
 
     def do_DELETE(self):
         try:
-            device_id = _device_id_from_headers(self.headers)
+            device_id = http_utils.device_id_from_headers(self.headers)
             query = parse_qs(urlparse(self.path).query)
             raw_id = query.get("id", [""])[0]
             if not raw_id.isdigit():
                 raise ValueError("Query parameter 'id' must be a positive integer")
             delete_from_watchlist(device_id, int(raw_id))
-            payload = {"deleted": True}
-            status = 204
+            payload, status = None, 204
+        except http_utils.HttpError as exc:
+            payload, status = {"error": str(exc)}, exc.status
         except ValueError as exc:
-            payload = {"error": str(exc)}
-            status = 400
+            payload, status = {"error": str(exc)}, 400
         except LookupError as exc:
-            payload = {"error": str(exc)}
-            status = 404
+            payload, status = {"error": str(exc)}, 404
         except Exception as exc:
-            payload = {"error": str(exc), "traceback": traceback.format_exc()}
-            status = 500
-        self._send_json(status, payload)
-
-    def _send_json(self, status, payload):
-        body = b"" if status == 204 else json.dumps(payload).encode("utf-8")
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.send_header("Access-Control-Allow-Headers", "X-Device-Id, Content-Type")
-        self.end_headers()
-        if body:
-            self.wfile.write(body)
+            payload, status = http_utils.internal_error(exc), 500
+        http_utils.send_json(self, status, payload)

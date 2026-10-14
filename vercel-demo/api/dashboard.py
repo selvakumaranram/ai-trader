@@ -1,14 +1,13 @@
 from __future__ import annotations
 
-import json
 import os
 import sys
-import traceback
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from http.server import BaseHTTPRequestHandler
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
+import http_utils
 import recommender
 from sources import news as news_source
 from sources import prices as prices_source
@@ -47,15 +46,7 @@ def build_dashboard():
 class handler(BaseHTTPRequestHandler):
     def do_GET(self):
         try:
-            payload = build_dashboard()
-            status = 200
+            payload, status = build_dashboard(), 200
         except Exception as exc:
-            payload = {"error": str(exc), "traceback": traceback.format_exc()}
-            status = 500
-
-        body = json.dumps(payload).encode("utf-8")
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.end_headers()
-        self.wfile.write(body)
+            payload, status = http_utils.internal_error(exc), 500
+        http_utils.send_json(self, status, payload)

@@ -1,16 +1,15 @@
 from __future__ import annotations
 
 import datetime
-import json
 import os
 import sys
-import traceback
 from http.server import BaseHTTPRequestHandler
 from urllib.parse import urlparse, parse_qs
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), ".."))
 
 import db
+import http_utils
 
 _VALID_TABS = {"screener", "1d", "3d", "7d", "1m"}
 _SORT_COLUMN = {"1d": "return_1d", "3d": "return_3d", "7d": "return_7d", "1m": "return_1m"}
@@ -91,20 +90,11 @@ class handler(BaseHTTPRequestHandler):
         try:
             query = parse_qs(urlparse(self.path).query)
             tab = query.get("tab", ["screener"])[0]
-            payload = get_momentum(tab)
-            status = 200
+            payload, status = get_momentum(tab), 200
         except ValueError as exc:
-            payload = {"error": str(exc)}
-            status = 400
+            payload, status = {"error": str(exc)}, 400
         except LookupError as exc:
-            payload = {"error": str(exc)}
-            status = 503
+            payload, status = {"error": str(exc)}, 503
         except Exception as exc:
-            payload = {"error": str(exc), "traceback": traceback.format_exc()}
-            status = 500
-        body = json.dumps(payload).encode("utf-8")
-        self.send_response(status)
-        self.send_header("Content-Type", "application/json; charset=utf-8")
-        self.send_header("Access-Control-Allow-Origin", "*")
-        self.end_headers()
-        self.wfile.write(body)
+            payload, status = http_utils.internal_error(exc), 500
+        http_utils.send_json(self, status, payload)
