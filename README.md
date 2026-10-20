@@ -136,6 +136,24 @@ Both scripts fetch live prices and news over the network on every run — there
 is no offline or cached mode. A fetch failure aborts the run with an error
 naming the symbol or feed that failed.
 
+### Run the dashboard locally
+
+The Python API normally runs only on Vercel. For local testing, `vercel-demo/dev_server.py` serves the same `api/*.py` handlers on `127.0.0.1:3001`, and Vite proxies `/api` to it in dev mode:
+
+```bash
+# terminal 1: API (reads DATABASE_URL / CRON_SECRET from the repo-root .env, never prints values)
+python vercel-demo/dev_server.py
+
+# terminal 2: UI
+cd vercel-demo && npm run dev       # open http://localhost:5173
+```
+
+The dashboard, search and Top Movers need only internet access. Holdings, Watchlist and Momentum use the database in `DATABASE_URL`. To run the momentum screen locally (takes a few minutes; hits NSE and Yahoo):
+
+```bash
+curl -H "Authorization: Bearer $CRON_SECRET" http://127.0.0.1:3001/api/cron/momentum_screen
+```
+
 ### Configuration (environment variables)
 
 | Variable | Required | Purpose |
