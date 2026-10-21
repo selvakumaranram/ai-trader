@@ -6,6 +6,9 @@ export default defineConfig({
   // Dev only (`npm run dev`): forward API calls to `python dev_server.py`.
   // Production builds are served by Vercel and ignore this.
   server: {
-    proxy: { "/api": "http://127.0.0.1:3001" },
+    proxy: {
+      "/api": "http://127.0.0.1:3001",
+      "/local": "http://127.0.0.1:8765",
+    },
   },
 });

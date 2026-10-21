@@ -154,6 +154,10 @@ The dashboard, search and Top Movers need only internet access. Holdings, Watchl
 curl -H "Authorization: Bearer $CRON_SECRET" http://127.0.0.1:3001/api/cron/momentum_screen
 ```
 
+**Data tab:** if the AI Trader core service (`D:i-trader-core`, `python -m aitrader serve`) is running on
+127.0.0.1:8765, a **Data** tab appears (Kite login, data coverage, job buttons, quality issues). It never appears on the
+deployed Vercel site.
+
 ### Configuration (environment variables)
 
 | Variable | Required | Purpose |
