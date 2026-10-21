@@ -6,6 +6,7 @@ import TopMovers from "./components/TopMovers.jsx";
 import Holdings from "./components/Holdings.jsx";
 import PersonalWatchlist from "./components/PersonalWatchlist.jsx";
 import MomentumSection from "./components/MomentumSection.jsx";
+import DataTab from "./components/DataTab.jsx";
 
 const TABS = [
   { key: "intraday", label: "Day Trading" },
@@ -23,6 +24,16 @@ export default function App() {
   const [loading, setLoading] = useState(true);
   const [capital, setCapital] = useState(25000);
   const [activeTab, setActiveTab] = useState("intraday");
+
+  const [localService, setLocalService] = useState(false);
+
+  useEffect(() => {
+    fetch("/local/status")
+      .then((res) => setLocalService(res.ok && (res.headers.get("content-type") || "").includes("json")))
+      .catch(() => setLocalService(false));
+  }, []);
+
+  const tabs = localService ? [...TABS, { key: "data", label: "Data" }] : TABS;
 
   useEffect(() => {
     fetch("/api/dashboard")
@@ -49,7 +60,7 @@ export default function App() {
       <CapitalInput capital={capital} onChange={setCapital} />
 
       <nav className="tabs">
-        {TABS.map((tab) => (
+        {tabs.map((tab) => (
           <button
             key={tab.key}
             className={activeTab === tab.key ? "tab active" : "tab"}
@@ -60,7 +71,9 @@ export default function App() {
         ))}
       </nav>
 
-      {activeTab === "holdings" ? (
+      {activeTab === "data" ? (
+        <DataTab />
+      ) : activeTab === "holdings" ? (
         <Holdings />
       ) : activeTab === "watchlist" ? (
         <PersonalWatchlist />
