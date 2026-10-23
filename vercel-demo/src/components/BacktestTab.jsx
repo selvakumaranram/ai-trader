@@ -208,11 +208,19 @@ export default function BacktestTab() {
     loadRuns();
   }, []);
 
+  // Re-attach to a run that is still going (e.g. after switching tabs, which unmounts this component).
+  useEffect(() => {
+    const live = runs.find((r) => r.status === "running");
+    if (live && runningId === null) setRunningId(live.id);
+  }, [runs]);
+
   useEffect(() => {
     if (runningId === null) return undefined;
+    let failures = 0;
     const timer = setInterval(() => {
       getJson(`/local/backtests/${runningId}`)
         .then((r) => {
+          failures = 0;
           if (r.status !== "running") {
             setRunningId(null);
             setRun(r);
@@ -220,8 +228,11 @@ export default function BacktestTab() {
           }
         })
         .catch((e) => {
-          setRunningId(null);
-          setError(e.message);
+          failures += 1;
+          if (failures >= 5) {  // keep polling through brief hiccups; give up only when the service is gone
+            setRunningId(null);
+            setError(e.message);
+          }
         });
     }, 2000);
     return () => clearInterval(timer);
