@@ -6,6 +6,7 @@ import TopMovers from "./components/TopMovers.jsx";
 import Holdings from "./components/Holdings.jsx";
 import PersonalWatchlist from "./components/PersonalWatchlist.jsx";
 import MomentumSection from "./components/MomentumSection.jsx";
+import BacktestTab from "./components/BacktestTab.jsx";
 import DataTab from "./components/DataTab.jsx";
 
 const TABS = [
@@ -33,7 +34,9 @@ export default function App() {
       .catch(() => setLocalService(false));
   }, []);
 
-  const tabs = localService ? [...TABS, { key: "data", label: "Data" }] : TABS;
+  const tabs = localService
+    ? [...TABS, { key: "data", label: "Data" }, { key: "backtest", label: "Backtest" }]
+    : TABS;
 
   useEffect(() => {
     fetch("/api/dashboard")
@@ -71,7 +74,9 @@ export default function App() {
         ))}
       </nav>
 
-      {activeTab === "data" ? (
+      {activeTab === "backtest" ? (
+        <BacktestTab />
+      ) : activeTab === "data" ? (
         <DataTab />
       ) : activeTab === "holdings" ? (
         <Holdings />

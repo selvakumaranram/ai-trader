@@ -156,7 +156,8 @@ curl -H "Authorization: Bearer $CRON_SECRET" http://127.0.0.1:3001/api/cron/mome
 
 **Data tab:** if the AI Trader core service (`D:\ai-trader-core`, `python -m aitrader serve`) is running on
 127.0.0.1:8765, a **Data** tab appears (Kite login, data coverage, job buttons, quality issues). It never appears on the
-deployed Vercel site.
+deployed Vercel site. A **Backtest** tab appears too: it runs strategy backtests on the local service and shows each
+trade on a chart.
 
 ### Configuration (environment variables)
 

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 
 const JOBS = [
-  { key: "backfill_history", label: "Load history (5y)" },
+  { key: "backfill_history", label: "Load history (10y)" },
   { key: "ingest_daily_bars", label: "Load today's bars" },
   { key: "run_quality_checks", label: "Run quality checks" },
   { key: "sync_instruments", label: "Sync Kite instruments" },
