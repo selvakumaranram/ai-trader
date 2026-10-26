@@ -100,6 +100,15 @@ function RunView({ run }) {
   return (
     <section>
       <h3>{title} ({run.start_date} → {run.end_date})</h3>
+      <p>
+        Download:{" "}
+        <a href={`/local/backtests/${run.id}/report.md`} download>study report (.md)</a>
+        {" · "}
+        <a href={`/local/backtests/${run.id}/trades.csv`} download>all trades (.csv)</a>
+        {" · "}
+        <a href={`/local/backtests/${run.id}/equity.csv`} download>daily account value (.csv)</a>
+        <span style={muted}> — paste the report into Claude or another AI to study it.</span>
+      </p>
       {s.warnings.map((w) => <p key={w} className="warning-text">{w}</p>)}
 
       <h4>Minimum-evidence checklist (not a promise of profit)</h4>
