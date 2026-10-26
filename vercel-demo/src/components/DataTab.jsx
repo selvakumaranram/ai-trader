@@ -4,6 +4,7 @@ const JOBS = [
   { key: "backfill_history", label: "Load history (10y)" },
   { key: "ingest_daily_bars", label: "Load today's bars" },
   { key: "run_quality_checks", label: "Run quality checks" },
+  { key: "scan_history", label: "Scan full history for price jumps" },
   { key: "sync_instruments", label: "Sync Kite instruments" },
   { key: "snapshot_options", label: "Snapshot options" },
 ];
