@@ -7,6 +7,7 @@ const STRATEGIES = [
   { key: "momentum", label: "A — Momentum" },
   { key: "pullback", label: "B — Trend pullback" },
   { key: "breakout", label: "C — Breakout" },
+  { key: "price_action", label: "D — Price action" },
 ];
 const MONEY = [
   { key: "capital", label: "Starting capital (₹)", def: 20000 },
@@ -34,6 +35,9 @@ const METRICS = [
   ["longest_losing_streak", "Longest losing streak", count],
   ["pct_days_invested", "Days with money invested", pct],
 ];
+// D follows the user's notes (1.5% risk, 3% daily stop); A–C keep the original settings.
+const STRATEGY_MONEY = { price_action: { risk_per_trade: 300, daily_loss_limit: 600 } };
+const BASE_MONEY = { risk_per_trade: 400, daily_loss_limit: 1000 };
 const strategyLabel = (key) => STRATEGIES.find((s) => s.key === key)?.label ?? key;
 const muted = { color: "var(--text-muted)" };
 
@@ -113,6 +117,13 @@ function RunView({ run }) {
 
       <h4>Minimum-evidence checklist (not a promise of profit)</h4>
       <ul>{s.checklist.map((c) => <li key={c.key}>{c.passed ? "✓" : "✗"} {c.label}</li>)}</ul>
+      {s.loss_streaks?.whole?.alerts > 0 && (
+        <p className="warning-text">
+          ⚠ 2 losses in a row happened {s.loss_streaks.whole.alerts} times. The {s.loss_streaks.whole.after_trades}{" "}
+          trades taken right after averaged {num(s.loss_streaks.whole.after_avg_r)}R (win rate{" "}
+          {pct(s.loss_streaks.whole.after_win_rate)}). Trading was not paused — this is a notice only.
+        </p>
+      )}
 
       <h4>Results</h4>
       <table>
@@ -212,6 +223,10 @@ export default function BacktestTab() {
   const loadRuns = () => getJson("/local/backtests?limit=50").then(setRuns).catch((e) => setError(e.message));
   const openRun = (id) => getJson(`/local/backtests/${id}`).then(setRun).catch((e) => setError(e.message));
   const set = (key) => (event) => setForm({ ...form, [key]: event.target.value });
+  const chooseStrategy = (event) => {
+    const strategy = event.target.value;
+    setForm({ ...form, strategy, ...BASE_MONEY, ...(STRATEGY_MONEY[strategy] || {}) });
+  };
 
   useEffect(() => {
     loadRuns();
@@ -274,7 +289,7 @@ export default function BacktestTab() {
       <form onSubmit={submit} style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "end" }}>
         <label>
           Strategy{" "}
-          <select value={form.strategy} onChange={set("strategy")}>
+          <select value={form.strategy} onChange={chooseStrategy}>
             {STRATEGIES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
           </select>
         </label>
