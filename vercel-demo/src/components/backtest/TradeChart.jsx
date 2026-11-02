@@ -27,12 +27,17 @@ export default function TradeChart({ trade, onClose }) {
          ["target", trade.target, "#16a34a"]].forEach(([title, price, color]) =>
           series.createPriceLine({ price: Number(price), color, lineWidth: 1, lineStyle: 2, title }));
         const won = Number(trade.pnl) >= 0;
+        const partial = trade.facts?.partial;
         createSeriesMarkers(series, [
+          ...(partial && partial.date !== trade.exit_date
+            ? [{ time: partial.date, position: "aboveBar", color: "#16a34a", shape: "circle",
+                 text: `½ sold ${num(partial.price)}` }]
+            : []),
           { time: trade.entry_date, position: "belowBar", color: "#2563eb", shape: "arrowUp",
             text: `Buy ${num(trade.entry_price)}` },
           { time: trade.exit_date, position: "aboveBar", color: won ? "#16a34a" : "#dc2626", shape: "arrowDown",
             text: `Sell ${num(trade.exit_price)} (${trade.exit_reason})` },
-        ]);
+        ].sort((a, b) => (a.time < b.time ? -1 : a.time > b.time ? 1 : 0)));
         chart.timeScale().fitContent();
       })
       .catch((e) => setError(e.message));

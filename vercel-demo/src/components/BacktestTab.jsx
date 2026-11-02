@@ -7,14 +7,32 @@ const STRATEGIES = [
   { key: "momentum", label: "A — Momentum" },
   { key: "pullback", label: "B — Trend pullback" },
   { key: "breakout", label: "C — Breakout" },
+  { key: "price_action", label: "D — Price action" },
+  { key: "momentum_a2", label: "A2 — Medium-term momentum" },
+  { key: "pullback_b2", label: "B2 — Trend pullback, volatility stop" },
+  { key: "breakout_c2", label: "C2 — Breakout, trailing exit" },
 ];
-const MONEY = [
-  { key: "capital", label: "Starting capital (₹)", def: 20000 },
-  { key: "risk_per_trade", label: "Risk per trade (₹)", def: 400 },
-  { key: "daily_loss_limit", label: "Daily loss stop (₹)", def: 1000 },
-  { key: "max_positions", label: "Max open positions", def: 3 },
-  { key: "max_position_value", label: "Max per position (₹)", def: 7000 },
-];
+// "percent" = the new defaults (risk as % of equity + regime filter, charge check, drawdown pause);
+// "fixed" = the original ₹ settings, to reproduce older runs. pct fields are typed in % and sent as fractions.
+const MONEY_MODES = {
+  percent: [
+    { key: "capital", label: "Starting capital (₹)", def: 100000 },
+    { key: "risk_pct", label: "Risk per trade (% of equity)", def: 1, pct: true },
+    { key: "daily_loss_pct", label: "Daily loss stop (% of equity)", def: 3, pct: true },
+    { key: "max_positions", label: "Max open positions", def: 5 },
+    { key: "max_position_value", label: "Max per position (₹)", def: 25000 },
+    { key: "max_charge_to_risk", label: "Max charges ÷ risk (%, blank = off)", def: 15, pct: true, optional: true },
+    { key: "max_drawdown_pause", label: "Drawdown pause (% below peak, blank = off)", def: 15, pct: true, optional: true },
+  ],
+  fixed: [
+    { key: "capital", label: "Starting capital (₹)", def: 20000 },
+    { key: "risk_per_trade", label: "Risk per trade (₹)", def: 400 },
+    { key: "daily_loss_limit", label: "Daily loss stop (₹)", def: 1000 },
+    { key: "max_positions", label: "Max open positions", def: 3 },
+    { key: "max_position_value", label: "Max per position (₹)", def: 7000 },
+  ],
+};
+const modeDefaults = (mode) => Object.fromEntries(MONEY_MODES[mode].map((m) => [m.key, m.def]));
 const METRICS = [
   ["return_pct", "Return", pct],
   ["cagr", "Yearly return (CAGR)", pct],
@@ -34,6 +52,9 @@ const METRICS = [
   ["longest_losing_streak", "Longest losing streak", count],
   ["pct_days_invested", "Days with money invested", pct],
 ];
+// Fixed-₹ mode only: D follows the user's notes (1.5% risk, 3% daily stop); A–C keep the original settings.
+const STRATEGY_MONEY = { price_action: { risk_per_trade: 300, daily_loss_limit: 600 } };
+const BASE_MONEY = { risk_per_trade: 400, daily_loss_limit: 1000 };
 const strategyLabel = (key) => STRATEGIES.find((s) => s.key === key)?.label ?? key;
 const muted = { color: "var(--text-muted)" };
 
@@ -100,10 +121,30 @@ function RunView({ run }) {
   return (
     <section>
       <h3>{title} ({run.start_date} → {run.end_date})</h3>
+      <p>
+        Download:{" "}
+        <a href={`/local/backtests/${run.id}/report.md`} download>study report (.md)</a>
+        {" · "}
+        <a href={`/local/backtests/${run.id}/trades.csv`} download>all trades (.csv)</a>
+        {" · "}
+        <a href={`/local/backtests/${run.id}/equity.csv`} download>daily account value (.csv)</a>
+        <span style={muted}> — paste the report into Claude or another AI to study it.</span>
+      </p>
       {s.warnings.map((w) => <p key={w} className="warning-text">{w}</p>)}
 
       <h4>Minimum-evidence checklist (not a promise of profit)</h4>
-      <ul>{s.checklist.map((c) => <li key={c.key}>{c.passed ? "✓" : "✗"} {c.label}</li>)}</ul>
+      <ul>
+        {s.checklist.map((c) => (
+          <li key={c.key}>{c.na ? "n/a — not enough trades to judge:" : c.passed ? "✓" : "✗"} {c.label}</li>
+        ))}
+      </ul>
+      {s.loss_streaks?.whole?.alerts > 0 && (
+        <p className="warning-text">
+          ⚠ 2 losses in a row happened {s.loss_streaks.whole.alerts} times. The {s.loss_streaks.whole.after_trades}{" "}
+          trades taken right after averaged {num(s.loss_streaks.whole.after_avg_r)}R (win rate{" "}
+          {pct(s.loss_streaks.whole.after_win_rate)}). Trading was not paused — this is a notice only.
+        </p>
+      )}
 
       <h4>Results</h4>
       <table>
@@ -193,7 +234,7 @@ function RunView({ run }) {
 
 export default function BacktestTab() {
   const [form, setForm] = useState({
-    strategy: "pullback", start: "", end: "", ...Object.fromEntries(MONEY.map((m) => [m.key, m.def])),
+    strategy: "pullback", start: "", end: "", mode: "percent", regime_filter: true, ...modeDefaults("percent"),
   });
   const [runs, setRuns] = useState([]);
   const [run, setRun] = useState(null);
@@ -203,6 +244,16 @@ export default function BacktestTab() {
   const loadRuns = () => getJson("/local/backtests?limit=50").then(setRuns).catch((e) => setError(e.message));
   const openRun = (id) => getJson(`/local/backtests/${id}`).then(setRun).catch((e) => setError(e.message));
   const set = (key) => (event) => setForm({ ...form, [key]: event.target.value });
+  const chooseStrategy = (event) => {
+    const strategy = event.target.value;
+    const money = form.mode === "fixed" ? { ...BASE_MONEY, ...(STRATEGY_MONEY[strategy] || {}) } : {};
+    setForm({ ...form, strategy, ...money });
+  };
+  const chooseMode = (event) => {
+    const mode = event.target.value;
+    const extra = mode === "fixed" ? STRATEGY_MONEY[form.strategy] || {} : {};
+    setForm({ ...form, mode, regime_filter: mode === "percent", ...modeDefaults(mode), ...extra });
+  };
 
   useEffect(() => {
     loadRuns();
@@ -242,9 +293,21 @@ export default function BacktestTab() {
     event.preventDefault();
     setError(null);
     const body = { strategy: form.strategy, start: form.start || null, end: form.end || null };
-    MONEY.forEach((m) => {
-      body[m.key] = Number(form[m.key]);
+    MONEY_MODES[form.mode].forEach((m) => {
+      const raw = String(form[m.key]).trim();
+      body[m.key] = m.optional && raw === "" ? null : Number(raw) / (m.pct ? 100 : 1);
     });
+    if (form.mode === "percent") {
+      Object.assign(body, {
+        risk_mode: "percent", regime_filter: form.regime_filter,
+        risk_per_trade: body.capital * body.risk_pct, daily_loss_limit: body.capital * body.daily_loss_pct,
+      });
+    } else {
+      Object.assign(body, {
+        risk_mode: "fixed", daily_loss_pct: null, regime_filter: false, max_charge_to_risk: null,
+        max_drawdown_pause: null,
+      });
+    }
     try {
       const res = await fetch("/local/backtests", {
         method: "POST",
@@ -265,17 +328,33 @@ export default function BacktestTab() {
       <form onSubmit={submit} style={{ display: "flex", flexWrap: "wrap", gap: "0.75rem", alignItems: "end" }}>
         <label>
           Strategy{" "}
-          <select value={form.strategy} onChange={set("strategy")}>
+          <select value={form.strategy} onChange={chooseStrategy}>
             {STRATEGIES.map((s) => <option key={s.key} value={s.key}>{s.label}</option>)}
           </select>
         </label>
         <label>From <input type="date" value={form.start} onChange={set("start")} /></label>
         <label>To <input type="date" value={form.end} onChange={set("end")} /></label>
-        {MONEY.map((m) => (
+        <label>
+          Money mode{" "}
+          <select value={form.mode} onChange={chooseMode}>
+            <option value="percent">% of equity (new)</option>
+            <option value="fixed">Fixed ₹ (old)</option>
+          </select>
+        </label>
+        {MONEY_MODES[form.mode].map((m) => (
           <label key={m.key}>
-            {m.label} <input type="number" min="1" value={form[m.key]} onChange={set(m.key)} style={{ width: "7rem" }} />
+            {m.label}{" "}
+            <input type="number" min={m.pct ? "0.01" : "1"} step={m.pct ? "0.01" : "1"} value={form[m.key]}
+              onChange={set(m.key)} style={{ width: "7rem" }} />
           </label>
         ))}
+        {form.mode === "percent" && (
+          <label>
+            <input type="checkbox" checked={form.regime_filter}
+              onChange={(e) => setForm({ ...form, regime_filter: e.target.checked })} />{" "}
+            No new buys when NIFTY 50 is below its 200-day average
+          </label>
+        )}
         <button type="submit" disabled={runningId !== null}>{runningId !== null ? "Running…" : "Run backtest"}</button>
       </form>
       <p style={muted}>
