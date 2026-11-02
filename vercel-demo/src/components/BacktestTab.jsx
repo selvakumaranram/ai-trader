@@ -20,7 +20,7 @@ const MONEY_MODES = {
     { key: "daily_loss_pct", label: "Daily loss stop (% of equity)", def: 3, pct: true },
     { key: "max_positions", label: "Max open positions", def: 5 },
     { key: "max_position_value", label: "Max per position (₹)", def: 25000 },
-    { key: "max_charge_to_risk", label: "Max charges ÷ risk (%, blank = off)", def: 5, pct: true, optional: true },
+    { key: "max_charge_to_risk", label: "Max charges ÷ risk (%, blank = off)", def: 15, pct: true, optional: true },
     { key: "max_drawdown_pause", label: "Drawdown pause (% below peak, blank = off)", def: 15, pct: true, optional: true },
   ],
   fixed: [
@@ -132,7 +132,11 @@ function RunView({ run }) {
       {s.warnings.map((w) => <p key={w} className="warning-text">{w}</p>)}
 
       <h4>Minimum-evidence checklist (not a promise of profit)</h4>
-      <ul>{s.checklist.map((c) => <li key={c.key}>{c.passed ? "✓" : "✗"} {c.label}</li>)}</ul>
+      <ul>
+        {s.checklist.map((c) => (
+          <li key={c.key}>{c.na ? "n/a — not enough trades to judge:" : c.passed ? "✓" : "✗"} {c.label}</li>
+        ))}
+      </ul>
       {s.loss_streaks?.whole?.alerts > 0 && (
         <p className="warning-text">
           ⚠ 2 losses in a row happened {s.loss_streaks.whole.alerts} times. The {s.loss_streaks.whole.after_trades}{" "}

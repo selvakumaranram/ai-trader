@@ -159,8 +159,8 @@ curl -H "Authorization: Bearer $CRON_SECRET" http://127.0.0.1:3001/api/cron/mome
 deployed Vercel site. A **Backtest** tab appears too: it runs strategy backtests on the local service and shows each
 trade on a chart. Strategies: A Momentum, B Trend pullback, C Breakout, D Price action (market
 structure, pullback/retest, half profit at 1.5R then a trailing stop), A2 Medium-term momentum (weekly ranking,
-ATR trailing stop) and B2 Trend pullback with a volatility-based stop. **Money mode:** "% of equity (new)" — the
-default — risks 1% of equity per trade on ₹1,00,000 and adds a NIFTY 200-day regime filter, a charges-vs-risk check
+ATR trailing stop), B2 Trend pullback with a volatility-based stop and C2 Breakout with the stop checked at entry and a trailing exit. **Money mode:** "% of equity (new)" — the
+default — risks 1% of equity per trade on ₹1,00,000 and adds a NIFTY 200-day regime filter, a charges-vs-risk check (15%)
 and a 15% drawdown pause; "Fixed ₹ (old)" restores the original ₹20,000 / ₹400 settings to reproduce older runs.
 
 ### Configuration (environment variables)
