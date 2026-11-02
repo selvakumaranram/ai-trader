@@ -12,6 +12,7 @@ const STRATEGIES = [
   { key: "pullback_b2", label: "B2 — Trend pullback, volatility stop" },
   { key: "breakout_c2", label: "C2 — Breakout, trailing exit" },
   { key: "pullback_b3", label: "B3 — Trend pullback, let winners run" },
+  { key: "breakout_c3", label: "C3 — Breakout, trend-confirmed" },
 ];
 // "percent" = the new defaults (risk as % of equity + regime filter, charge check, drawdown pause);
 // "fixed" = the original ₹ settings, to reproduce older runs. pct fields are typed in % and sent as fractions.
