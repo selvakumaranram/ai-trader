@@ -1,8 +1,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap");
 
-/* Instagram-style theme: light by default, dark when the system prefers it. */
+/* Instagram-style theme, always light: white background. */
 :root {
-  --bg: #fafafa;
+  --bg: #ffffff;
   --card: #ffffff;
   --card-border: #dbdbdb;
   --text: #262626;
@@ -19,20 +19,6 @@
   color-scheme: light;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root:not([data-theme="light"]) {
-    --bg: #000000;
-    --card: #121212;
-    --card-border: #262626;
-    --text: #f5f5f5;
-    --text-muted: #a8a8a8;
-    --accent: #0095f6;
-    --accent-soft: rgba(0, 149, 246, 0.18);
-    --hover: #1c1c1c;
-    --shadow: none;
-    color-scheme: dark;
-  }
-}
 
 * {
   box-sizing: border-box;
