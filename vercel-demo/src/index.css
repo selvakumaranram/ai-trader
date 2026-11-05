@@ -1,14 +1,24 @@
+@import url("https://fonts.googleapis.com/css2?family=Grand+Hotel&display=swap");
+
+/* Instagram-style theme, always light: white background. */
 :root {
-  --bg: #07111f;
-  --card: #10233c;
-  --card-border: #2f4b72;
-  --text: #e7eefc;
-  --text-muted: #89a6c9;
-  --accent: #8ecfff;
-  --positive: #4ade80;
-  --negative: #f87171;
-  --warning: #fbbf24;
+  --bg: #ffffff;
+  --card: #ffffff;
+  --card-border: #dbdbdb;
+  --text: #262626;
+  --text-muted: #8e8e8e;
+  --accent: #0095f6;
+  --accent-text: #ffffff;
+  --accent-soft: rgba(0, 149, 246, 0.1);
+  --positive: #00a86b;
+  --negative: #ed4956;
+  --warning: #f5a623;
+  --hover: #f5f5f5;
+  --gradient: linear-gradient(45deg, #feda75, #fa7e1e, #d62976, #962fbf, #4f5bd5);
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  color-scheme: light;
 }
+
 
 * {
   box-sizing: border-box;
@@ -16,7 +26,9 @@
 
 body {
   margin: 0;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  line-height: 1.45;
   background: var(--bg);
   color: var(--text);
 }
@@ -60,35 +72,53 @@ body {
 
 .app-header h1 {
   margin: 0 0 0.25rem;
-  font-size: 2rem;
-  background: linear-gradient(135deg, var(--accent), #c084fc);
+  display: inline-block; /* the gradient spans the word, not the whole page width */
+  font-family: "Grand Hotel", cursive;
+  font-weight: 400;
+  font-size: 2.8rem;
+  line-height: 1.1;
+  background: var(--gradient);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
 
+/* Tabs look like Instagram story bubbles: the active one gets the gradient ring. */
 .tabs {
   display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1rem;
-  border-bottom: 1px solid var(--card-border);
-  padding-bottom: 0.5rem;
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+  padding: 0.75rem;
   flex-wrap: wrap;
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
 }
 
 .tab {
-  padding: 0.5rem 1rem;
-  border-radius: 8px;
-  border: 1px solid transparent;
-  background: transparent;
-  color: var(--text-muted);
+  padding: 0.45rem 1rem;
+  border-radius: 999px;
+  border: 2px solid var(--card-border);
+  background: var(--card);
+  color: var(--text);
   cursor: pointer;
-  font-size: 0.9rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  transition: transform 0.08s ease;
+}
+
+.tab:hover {
+  background: var(--hover);
+}
+
+.tab:active {
+  transform: scale(0.97);
 }
 
 .tab.active {
-  background: var(--card);
-  border-color: var(--card-border);
+  border-color: transparent;
+  background: linear-gradient(var(--card), var(--card)) padding-box, var(--gradient) border-box;
   color: var(--text);
 }
 
@@ -101,8 +131,13 @@ body {
 .asset-card {
   background: var(--card);
   border: 1px solid var(--card-border);
-  border-radius: 10px;
+  border-radius: 12px;
   overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.asset-card-row:hover {
+  background: var(--hover);
 }
 
 .asset-card-row {
@@ -129,7 +164,7 @@ body {
 .asset-type {
   font-size: 0.75rem;
   color: var(--text-muted);
-  background: rgba(142, 207, 255, 0.1);
+  background: var(--hover);
   padding: 0.1rem 0.5rem;
   border-radius: 999px;
 }
@@ -137,7 +172,7 @@ body {
 .asset-style-label {
   font-size: 0.75rem;
   color: var(--accent);
-  background: rgba(142, 207, 255, 0.15);
+  background: var(--accent-soft);
   padding: 0.1rem 0.5rem;
   border-radius: 999px;
   font-weight: 600;
@@ -280,7 +315,7 @@ body {
   border-radius: 8px;
   border: none;
   background: var(--accent);
-  color: #07111f;
+  color: var(--accent-text);
   font-weight: 600;
   cursor: pointer;
 }
@@ -318,7 +353,7 @@ body {
   border-radius: 8px;
   border: none;
   background: var(--accent);
-  color: #07111f;
+  color: var(--accent-text);
   font-weight: 600;
   cursor: pointer;
 }
@@ -489,4 +524,121 @@ body {
 
 .momentum-gate-unknown {
   color: var(--text-muted);
+}
+
+
+/* --- shared controls (Backtest, Data and Shadow tabs) ------------------------------------------------------ */
+button {
+  font: inherit;
+  padding: 0.45rem 1rem;
+  border-radius: 8px;
+  border: none;
+  background: var(--accent);
+  color: var(--accent-text);
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  filter: brightness(0.93);
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+input,
+select {
+  font: inherit;
+  padding: 0.45rem 0.7rem;
+  border-radius: 8px;
+  border: 1px solid var(--card-border);
+  background: var(--bg);
+  color: var(--text);
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: var(--text-muted);
+}
+
+label {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+h3 {
+  font-size: 1rem;
+  margin: 1.5rem 0 0.6rem;
+}
+
+section,
+.backtest-tab > form {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 12px;
+  padding: 1rem 1.1rem;
+  margin-bottom: 1rem;
+  box-shadow: var(--shadow);
+}
+
+section h3:first-child {
+  margin-top: 0;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+  font-variant-numeric: tabular-nums;
+  display: block;
+  overflow-x: auto;
+}
+
+.data-table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--card-border);
+  white-space: nowrap;
+}
+
+.data-table td {
+  padding: 0.55rem 0.6rem;
+  border-bottom: 1px solid var(--card-border);
+  vertical-align: top;
+}
+
+.data-table tr:last-child td {
+  border-bottom: none;
+}
+
+.data-table tbody tr:hover {
+  background: var(--hover);
+}
+
+/* the secondary "tab"-style buttons inside tables (e.g. I agree / I don't) */
+.data-table .tab {
+  padding: 0.25rem 0.7rem;
+  font-size: 0.75rem;
+}
+
+.positive {
+  color: var(--positive);
+}
+
+.negative {
+  color: var(--negative);
+}
+
+@media (max-width: 640px) {
+  #root {
+    padding: 1rem 16px 3rem;
+  }
 }

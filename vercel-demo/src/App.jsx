@@ -8,6 +8,7 @@ import PersonalWatchlist from "./components/PersonalWatchlist.jsx";
 import MomentumSection from "./components/MomentumSection.jsx";
 import BacktestTab from "./components/BacktestTab.jsx";
 import DataTab from "./components/DataTab.jsx";
+import ShadowTab from "./components/ShadowTab.jsx";
 
 const TABS = [
   { key: "intraday", label: "Day Trading" },
@@ -35,7 +36,8 @@ export default function App() {
   }, []);
 
   const tabs = localService
-    ? [...TABS, { key: "data", label: "Data" }, { key: "backtest", label: "Backtest" }]
+    ? [...TABS, { key: "data", label: "Data" }, { key: "backtest", label: "Backtest" },
+       { key: "shadow", label: "Shadow Trading" }]
     : TABS;
 
   useEffect(() => {
@@ -74,7 +76,9 @@ export default function App() {
         ))}
       </nav>
 
-      {activeTab === "backtest" ? (
+      {activeTab === "shadow" ? (
+        <ShadowTab />
+      ) : activeTab === "backtest" ? (
         <BacktestTab />
       ) : activeTab === "data" ? (
         <DataTab />
