@@ -36,6 +36,50 @@ function ScoreRow({ label, s }) {
   );
 }
 
+const signedR = (r) => (r == null ? "—" : `${r >= 0 ? "+" : ""}${num(r, 2)}R`);
+
+// What happened to similar C3 breakouts in the backtest. Grouped by type of setup, not by the single stock.
+function PastStats({ groups }) {
+  if (!groups) return <span style={muted}>—</span>;
+  return (
+    <div style={{ minWidth: 260 }}>
+      {groups.map((g) => (
+        <div key={g.label}>
+          <strong>{g.label}</strong>: {count(g.n)} past trades
+          {g.win_rate == null ? "" : ` · made money ${pct(g.win_rate)} · average ${signedR(g.avg_r)} · big winners (+3R) ${pct(g.big_winners)}`}
+          {g.note ? <span style={muted}> ({g.note})</span> : null}
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function PortfolioTable({ p }) {
+  return (
+    <section>
+      <h3>Stocks: the rule vs your picks</h3>
+      <p style={muted}>
+        <strong>The rule</strong> takes every C3 signal, biggest volume surge first, up to 5 open. <strong>Your
+        picks</strong> takes only the stock signals you marked "I agree" before about 9:20 the next morning, with its
+        own pretend ₹1,00,000 account and its own 5 slots, at the same price, stop and size. Over months this shows
+        whether your choices beat the rule. Judge only after many closed trades.
+      </p>
+      <table className="data-table">
+        <thead><tr><th></th><th>Signals</th><th>Closed</th><th>Open</th><th>Win rate</th><th>Average R</th>
+          <th>Total P&amp;L</th></tr></thead>
+        <tbody>
+          {[["The rule", p.rule], ["Your picks", p.mine]].map(([label, s]) => (
+            <tr key={label}>
+              <td>{label}</td><td>{count(s.signals)}</td><td>{count(s.closed)}</td><td>{count(s.open)}</td>
+              <td>{pct(s.win_rate)}</td><td>{signedR(s.avg_r)}</td><td>{rupees(s.total_pnl)}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  );
+}
+
 function ScoreTable({ title, rows }) {
   return (
     <section>
@@ -131,13 +175,19 @@ export default function ShadowTab() {
       <ScoreTable title="Scoreboard by rule" rows={Object.entries(sb.rules).map(([k, s]) => [ruleName(k), s])} />
       <ScoreTable title="Your calls" rows={[["You agreed", sb.views.agree], ["You disagreed", sb.views.disagree],
         ["No view given", sb.views.no_view]]} />
+      {sb.portfolios ? <PortfolioTable p={sb.portfolios} /> : null}
 
       <section>
         <h3>Signals</h3>
+        <p style={muted}>
+          {data.stats_source
+            ? `"Past statistics" for each stock signal come from C3 backtest run #${data.stats_source.run_id} (${data.stats_source.from} to ${data.stats_source.to}, ${count(data.stats_source.trades)} trades). "Made money" = closed with a profit after charges. C3 usually wins only 30–40% of trades; it relies on a few big winners. Past results are not a promise.`
+            : "No C3 backtest run found yet, so no past statistics: run C3 once on the Backtest tab."}
+        </p>
         {data.signals.length === 0 ? <p style={muted}>No signals yet. The first scan runs after today's close (4:40 PM).</p> : (
           <table className="data-table">
             <thead><tr><th>Date</th><th>Rule</th><th>Idea</th><th>Close</th><th>Stop / target</th><th>Why</th>
-              <th>Status</th><th>Your view</th></tr></thead>
+              <th>Past statistics (similar setups)</th><th>Status</th><th>Your view</th><th>Your picks</th></tr></thead>
             <tbody>
               {data.signals.map((s) => (
                 <tr key={s.id}>
@@ -147,11 +197,13 @@ export default function ShadowTab() {
                   <td>{num(s.close, 2)}</td>
                   <td>{num(s.stop, 2)} / {s.target == null ? "trailing" : num(s.target, 0)}</td>
                   <td>{s.reason}</td>
+                  <td>{s.rule === "c3_stock" ? <PastStats groups={(data.signal_stats || {})[s.id]} /> : <span style={muted}>—</span>}</td>
                   <td>{s.status}{s.note ? ` — ${s.note}` : ""}</td>
                   <td>
                     <button className={s.user_view === "agree" ? "tab active" : "tab"} onClick={() => setView(s.id, s.user_view === "agree" ? null : "agree")}>I agree</button>{" "}
                     <button className={s.user_view === "disagree" ? "tab active" : "tab"} onClick={() => setView(s.id, s.user_view === "disagree" ? null : "disagree")}>I don't</button>
                   </td>
+                  <td>{s.rule !== "c3_stock" ? <span style={muted}>—</span> : s.pick_note || (s.user_view === "agree" && s.status === "new" ? "will buy at ~9:20" : <span style={muted}>—</span>)}</td>
                 </tr>
               ))}
             </tbody>
@@ -164,12 +216,13 @@ export default function ShadowTab() {
           <h3>{title}</h3>
           {rows.length === 0 ? <p style={muted}>None yet.</p> : (
             <table className="data-table">
-              <thead><tr><th>Rule</th><th>Stock / option</th><th>Shares / lot</th><th>Entry</th><th>Entry price</th>
+              <thead><tr><th>Portfolio</th><th>Rule</th><th>Stock / option</th><th>Shares / lot</th><th>Entry</th><th>Entry price</th>
                 <th>{title.startsWith("Open") ? "Latest mark" : "Exit price"}</th><th>Underlying entry → now/exit</th><th>Stop</th>
                 <th>Exit</th><th>P&amp;L</th><th>R</th><th>Note</th></tr></thead>
               <tbody>
                 {rows.map((t) => (
                   <tr key={t.id}>
+                    <td>{t.portfolio === "mine" ? "Your picks" : "The rule"}</td>
                     <td>{ruleName(t.rule)}</td>
                     <td>{t.tradingsymbol}</td>
                     <td>{t.lot_size}</td>
