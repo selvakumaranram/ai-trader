@@ -57,18 +57,19 @@ function PastStats({ groups }) {
 function PortfolioTable({ p }) {
   return (
     <section>
-      <h3>Stocks: the rule vs your picks</h3>
+      <h3>Stocks: the rule vs your picks vs AI picks</h3>
       <p style={muted}>
         <strong>The rule</strong> takes every C3 signal, biggest volume surge first, up to 5 open. <strong>Your
         picks</strong> takes only the stock signals you marked "I agree" before about 9:20 the next morning, with its
         own pretend ₹1,00,000 account and its own 5 slots, at the same price, stop and size. Over months this shows
-        whether your choices beat the rule. Judge only after many closed trades.
+        whether your choices beat the rule. <strong>AI picks (Gemini)</strong> works the same way with the stocks the AI
+        chose at about 5:00 PM, using only our numbers (no news). Judge only after many closed trades.
       </p>
       <table className="data-table">
         <thead><tr><th></th><th>Signals</th><th>Closed</th><th>Open</th><th>Win rate</th><th>Average R</th>
           <th>Total P&amp;L</th></tr></thead>
         <tbody>
-          {[["The rule", p.rule], ["Your picks", p.mine]].map(([label, s]) => (
+          {[["The rule", p.rule], ["Your picks", p.mine], ["AI picks (Gemini)", p.ai]].filter(([, s]) => s).map(([label, s]) => (
             <tr key={label}>
               <td>{label}</td><td>{count(s.signals)}</td><td>{count(s.closed)}</td><td>{count(s.open)}</td>
               <td>{pct(s.win_rate)}</td><td>{signedR(s.avg_r)}</td><td>{rupees(s.total_pnl)}</td>
@@ -187,7 +188,7 @@ export default function ShadowTab() {
         {data.signals.length === 0 ? <p style={muted}>No signals yet. The first scan runs after today's close (4:40 PM).</p> : (
           <table className="data-table">
             <thead><tr><th>Date</th><th>Rule</th><th>Idea</th><th>Close</th><th>Stop / target</th><th>Why</th>
-              <th>Past statistics (similar setups)</th><th>Status</th><th>Your view</th><th>Your picks</th></tr></thead>
+              <th>Past statistics (similar setups)</th><th>Status</th><th>Your view</th><th>Your picks</th><th>AI pick</th></tr></thead>
             <tbody>
               {data.signals.map((s) => (
                 <tr key={s.id}>
@@ -204,6 +205,12 @@ export default function ShadowTab() {
                     <button className={s.user_view === "disagree" ? "tab active" : "tab"} onClick={() => setView(s.id, s.user_view === "disagree" ? null : "disagree")}>I don't</button>
                   </td>
                   <td>{s.rule !== "c3_stock" ? <span style={muted}>—</span> : s.pick_note || (s.user_view === "agree" && s.status === "new" ? "will buy at ~9:20" : <span style={muted}>—</span>)}</td>
+                  <td style={{ minWidth: 200 }}>{s.rule !== "c3_stock" || !s.ai_view ? <span style={muted}>—</span> : (
+                    <>
+                      <strong>{s.ai_view === "pick" ? "Pick" : "Skip"}</strong>{s.ai_note ? ` (${s.ai_note})` : ""}
+                      <div style={muted}>{s.ai_reason} <em>({s.ai_model})</em></div>
+                    </>
+                  )}</td>
                 </tr>
               ))}
             </tbody>
@@ -222,7 +229,7 @@ export default function ShadowTab() {
               <tbody>
                 {rows.map((t) => (
                   <tr key={t.id}>
-                    <td>{t.portfolio === "mine" ? "Your picks" : "The rule"}</td>
+                    <td>{t.portfolio === "mine" ? "Your picks" : t.portfolio === "ai" ? "AI picks" : "The rule"}</td>
                     <td>{ruleName(t.rule)}</td>
                     <td>{t.tradingsymbol}</td>
                     <td>{t.lot_size}</td>
