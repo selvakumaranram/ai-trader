@@ -7,7 +7,9 @@ const RULE_NAMES = {
   big_move: "Big move (≥1.5%) closing at the extreme",
   gap_hold: "Gap ≥1% that holds all day",
   sharp_dip: "Sharp dip in an uptrend (or rally in a downtrend)",
+  c3_stock: "C3 breakout (stock)",
 };
+const idea = (s) => (s.side === "BUY" ? `Buy ${s.underlying}` : s.side === "CE" ? "NIFTY up (CE)" : "NIFTY down (PE)");
 const muted = { color: "var(--text-muted)" };
 const ruleName = (key) => RULE_NAMES[key] ?? key;
 const when = (iso) => (iso ? new Date(iso).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "—");
@@ -119,7 +121,8 @@ export default function ShadowTab() {
     <div className="shadow-tab">
       <p style={muted}>
         <strong>Shadow trading — pretend trades only, no real orders.</strong> After each close the system checks NIFTY
-        against 4 candidate "strong day" rules. Next morning (about 9:20) it pretends to buy one lot of the
+        against 4 candidate "strong day" rules, and the stocks against strategy C3 (pretend ₹1,00,000 account, 1% risk
+        per trade, ₹25,000 per stock, 5 open at most, 3-ATR trailing stop updated after each close). Next morning (about 9:20) it pretends to buy one lot of the
         at-the-money CE (up) or PE (down) at the live Kite price, and before the close (3:25) it checks the stop, the
         target, 5 days held, or expiry. Log in to Kite every morning before 9:15, or that day's entries are missed.
         P&amp;L per lot is after approximate charges.
@@ -133,18 +136,18 @@ export default function ShadowTab() {
         <h3>Signals</h3>
         {data.signals.length === 0 ? <p style={muted}>No signals yet. The first scan runs after today's close (4:40 PM).</p> : (
           <table className="data-table">
-            <thead><tr><th>Date</th><th>Rule</th><th>Idea</th><th>NIFTY close</th><th>Stop / target</th><th>Why</th>
+            <thead><tr><th>Date</th><th>Rule</th><th>Idea</th><th>Close</th><th>Stop / target</th><th>Why</th>
               <th>Status</th><th>Your view</th></tr></thead>
             <tbody>
               {data.signals.map((s) => (
                 <tr key={s.id}>
                   <td>{s.signal_date}</td>
                   <td>{ruleName(s.rule)}</td>
-                  <td>{s.side === "CE" ? "Up (CE)" : "Down (PE)"}</td>
-                  <td>{num(s.close, 0)}</td>
-                  <td>{num(s.stop, 0)} / {num(s.target, 0)}</td>
+                  <td>{idea(s)}</td>
+                  <td>{num(s.close, 2)}</td>
+                  <td>{num(s.stop, 2)} / {s.target == null ? "trailing" : num(s.target, 0)}</td>
                   <td>{s.reason}</td>
-                  <td>{s.status}</td>
+                  <td>{s.status}{s.note ? ` — ${s.note}` : ""}</td>
                   <td>
                     <button className={s.user_view === "agree" ? "tab active" : "tab"} onClick={() => setView(s.id, s.user_view === "agree" ? null : "agree")}>I agree</button>{" "}
                     <button className={s.user_view === "disagree" ? "tab active" : "tab"} onClick={() => setView(s.id, s.user_view === "disagree" ? null : "disagree")}>I don't</button>
@@ -161,9 +164,9 @@ export default function ShadowTab() {
           <h3>{title}</h3>
           {rows.length === 0 ? <p style={muted}>None yet.</p> : (
             <table className="data-table">
-              <thead><tr><th>Rule</th><th>Option</th><th>Lot</th><th>Entry</th><th>Entry price</th>
-                <th>{title.startsWith("Open") ? "Latest mark" : "Exit price"}</th><th>NIFTY entry → now/exit</th>
-                <th>Exit</th><th>P&amp;L / lot</th><th>Note</th></tr></thead>
+              <thead><tr><th>Rule</th><th>Stock / option</th><th>Shares / lot</th><th>Entry</th><th>Entry price</th>
+                <th>{title.startsWith("Open") ? "Latest mark" : "Exit price"}</th><th>Underlying entry → now/exit</th><th>Stop</th>
+                <th>Exit</th><th>P&amp;L</th><th>R</th><th>Note</th></tr></thead>
               <tbody>
                 {rows.map((t) => (
                   <tr key={t.id}>
@@ -174,8 +177,10 @@ export default function ShadowTab() {
                     <td>{num(t.entry_price)}</td>
                     <td>{num(t.exit_price ?? t.mark_price)}</td>
                     <td>{num(t.underlying_entry, 0)} → {num(t.underlying_exit ?? t.underlying_mark, 0)}</td>
+                    <td>{num(t.stop, 2)}{t.kind === "stock" && t.initial_stop != null && Number(t.stop) > Number(t.initial_stop) ? " (trailed up)" : ""}</td>
                     <td>{t.exit_reason ?? "—"}</td>
                     <td>{t.pnl_per_lot == null ? (t.mark_price == null ? "—" : `≈ ${rupees((t.mark_price - t.entry_price) * t.lot_size)} (open)`) : rupees(t.pnl_per_lot)}</td>
+                    <td>{t.r_multiple == null ? "—" : num(t.r_multiple)}</td>
                     <td>{t.note || ""}</td>
                   </tr>
                 ))}
