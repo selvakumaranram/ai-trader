@@ -15,6 +15,7 @@ const STRATEGIES = [
   { key: "breakout_c3", label: "C3 — Breakout, trend-confirmed" },
   { key: "momentum_a3", label: "A3 — Medium-term momentum (A3-best)" },
   { key: "breakout_momentum", label: "C4 — Breakout + momentum" },
+  { key: "msnr", label: "M — Malaysian SnR (fresh support)" },
 ];
 // "percent" = the new defaults (risk as % of equity + regime filter, charge check, drawdown pause);
 // "fixed" = the original ₹ settings, to reproduce older runs. pct fields are typed in % and sent as fractions.
